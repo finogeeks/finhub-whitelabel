@@ -1,3 +1,5 @@
+[English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+
 # Brand assets
 
 Replace these placeholder SVGs with your mark, wordmark, favicon, and Open Graph image.

@@ -1,3 +1,5 @@
+[English](./persona-pack-pin.md) | [简体中文](./persona-pack-pin.zh-CN.md) | [繁體中文](./persona-pack-pin.zh-TW.md)
+
 # Persona pack pin
 
 How to pin your `persona-templates.json` and run a one-shot **replace** so the persona picker shows only your pack.

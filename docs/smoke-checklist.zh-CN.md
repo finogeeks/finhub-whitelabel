@@ -1,0 +1,37 @@
+[English](./smoke-checklist.md) | [简体中文](./smoke-checklist.zh-CN.md) | [繁體中文](./smoke-checklist.zh-TW.md)
+
+# 冒烟清单
+
+在 [`skills/finhub-deploy/SKILL.md`](../skills/finhub-deploy/SKILL.md) 的 Phase 1（默认堆栈）与 Phase 2（白标覆盖层）之后运行。
+
+## 基础设施
+
+- [ ] 发布已解压，compose 或 Helm 部署报告服务健康（`docker compose ps` 或等价命令）。
+- [ ] 登录 / 应用 URL 可访问（您配置的主机，例如 `https://hub.example.com`）。
+
+## 品牌（Option B）
+
+- [ ] 启动页与登录页显示来自 `branding/platform-settings.json` 的**您的** `product_name`（非上游默认产品字符串）。
+- [ ] Logo 可加载：`logo_url` 可访问（静态挂载或上传路径）。
+- [ ] `auth_login` / `auth_register` 标题与种子文案一致。
+- [ ] 管理员可 **GET** 与种子一致的平台设置（发布支持的相关字段）。
+
+## Persona pack
+
+- [ ] `PERSONA_TEMPLATE_CONFIG_PATH` 指向您挂载的 `persona-templates.json`。
+- [ ] 使用 `replace_platform` 的一次性同步已完成（先 dry-run，再应用）。
+- [ ] 人设选择器**仅**列出您 pack 中的模板（无完整默认目录 clutter）。
+- [ ] 默认角色与 JSON 中 `is_default: true` 的模板一致（例如 **General**）。
+
+## 部署前校验
+
+- [ ] `./scripts/validate-artifacts.sh` 在 fork 上退出码为 0。
+
+## OAuth（仅当运行了 Phase 1.5）
+
+- [ ] `OAUTH_PROVIDER_ENABLED=true` 且 issuer URL 与主机一致。
+- [ ] OAuth authorize 端点不返回 “provider disabled” 404。
+
+## 冷路径标准（产品）
+
+新客户或 **AI 代理** 应能在**不编辑 chatkit 源代码**的情况下，凭：发布 URL、本仓库路径及其提供的凭据，到达品牌化登录界面与修剪后的人设 pack。
