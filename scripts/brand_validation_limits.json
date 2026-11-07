@@ -1,0 +1,29 @@
+{
+  "_comment": "Documented configurable limits for branding validation. Adjust for your fork; re-run ./scripts/validate-branding.py after changes.",
+  "product_name_max_chars": 80,
+  "auth_title_max_chars": 120,
+  "auth_subtitle_max_chars": 400,
+  "family_line_max_chars": 120,
+  "login_hero_title_max_chars": 120,
+  "login_hero_subtitle_max_chars": 400,
+  "asset_file_size_bytes": {
+    "favicon": 524288,
+    "mark": 2097152,
+    "wordmark": 2097152,
+    "og": 5242880
+  },
+  "asset_dimension_px": {
+    "favicon_max": 512,
+    "mark_max": 2048,
+    "wordmark_max_width": 4096,
+    "wordmark_max_height": 1024,
+    "og_max_width": 2400,
+    "og_max_height": 1260
+  },
+  "wcag": {
+    "normal_text_min_contrast": 4.5,
+    "large_text_min_contrast": 3.0,
+    "large_text_min_pt": 18,
+    "large_text_bold_min_pt": 14
+  }
+}

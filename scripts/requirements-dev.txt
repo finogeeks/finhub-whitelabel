@@ -1,0 +1,4 @@
+# Optional local dev deps for brand preview + tests (install once; preview render needs no packages).
+pillow>=10.0.0
+pytest>=8.0.0
+playwright>=1.40.0

@@ -21,7 +21,7 @@ Public template for forking or cloning when you deploy your own **FinHub** insta
    - Logos → [`branding/assets/`](./branding/assets/)
    - Persona starter pack → [`persona-templates.json`](./persona-templates.json)
    - Host / TLS → [`deploy/compose/`](./deploy/compose/) or [`deploy/helm/`](./deploy/helm/)
-4. **Validate** — `./scripts/validate-artifacts.sh` (no network).
+4. **Validate & preview** — `./scripts/validate-artifacts.sh` (no network); optional brand preview via [`skills/finhub-brand/SKILL.md`](./skills/finhub-brand/SKILL.md).
 5. **Deploy** — give an agent the release URL, path to this fork, and credentials. Load [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) and follow Phase 1 → Phase 2 (Phase 1.5 OAuth only if you need it).
 6. **Smoke** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.md).
 
@@ -43,10 +43,17 @@ docs/
   persona-pack-pin.md
   customize.md
   smoke-checklist.md
+  brand-preview.md             # post-deploy screenshot comparison
 skills/
   finhub-deploy/SKILL.md       # primary agent entrypoint
+  finhub-brand/SKILL.md        # brand validate + static login preview
 scripts/
-  validate-artifacts.sh        # Soft P0: presence + JSON parse
+  validate-artifacts.sh        # presence + JSON + branding validator
+  validate-branding.py
+  preview-login.py
+  capture-preview-screenshots.py
+artifacts/
+  brand-preview/               # generated preview HTML + PNGs (committed after generation)
 ```
 
 ## Reference deploy

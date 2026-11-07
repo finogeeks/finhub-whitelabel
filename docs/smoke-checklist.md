@@ -26,6 +26,14 @@ Run after Phase 1 (default stack) and Phase 2 (white-label overlays) from [`skil
 ## Validation before deploy
 
 - [ ] `./scripts/validate-artifacts.sh` exits 0 on the fork.
+- [ ] Optional: `python3 scripts/preview-login.py` and review `artifacts/brand-preview/login-preview-en.html`.
+
+## Brand preview vs live login (after Phase 2)
+
+- [ ] Generate local reference PNGs: `python3 scripts/capture-preview-screenshots.py` (see [`scripts/README.md`](../scripts/README.md)).
+- [ ] Capture **deployed** login screenshots (desktop + mobile) at your public URL.
+- [ ] Compare product name, logo/mark, login hero copy, auth titles, and theme colors against `artifacts/brand-preview/login-preview-*.png`.
+- [ ] Treat differences in layout, fonts, or optional chrome as expected unless branding seed or assets are wrong — preview is labelled **approximate** ([`docs/brand-preview.md`](./brand-preview.md)).
 
 ## OAuth (only if Phase 1.5 ran)
 

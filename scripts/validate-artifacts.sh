@@ -22,6 +22,8 @@ REQUIRED=(
   docs/customize.md
   docs/smoke-checklist.md
   skills/finhub-deploy/SKILL.md
+  skills/finhub-brand/SKILL.md
+  scripts/brand_validation_limits.json
 )
 
 missing=0
@@ -60,6 +62,12 @@ fi
 if [[ "$missing" -ne 0 ]]; then
   echo "validate-artifacts: FAIL (missing files)" >&2
   exit 1
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  python3 "$ROOT/scripts/validate-branding.py" || exit 1
+else
+  echo "WARN: python3 not found; skipping validate-branding.py" >&2
 fi
 
 echo "validate-artifacts: PASS"
