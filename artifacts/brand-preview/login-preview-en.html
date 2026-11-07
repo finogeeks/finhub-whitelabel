@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Acme Hub — brand preview</title>
+  <link rel="icon" href="../../branding/assets/favicon.svg" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Helvetica Neue, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+    }
+    .approx-banner {
+      background: #fef3c7;
+      color: #92400e;
+      border-bottom: 1px solid #f59e0b;
+      padding: 0.65rem 1rem;
+      font-size: 0.875rem;
+      text-align: center;
+      font-weight: 600;
+    }
+    .shell {
+      display: flex;
+      flex-wrap: wrap;
+      min-height: calc(100vh - 42px);
+    }
+    .hero {
+      flex: 1 1 320px;
+      padding: 2.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
+      max-width: 560px;
+    }
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .hero p {
+      margin: 0;
+      color: #64748b;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    .auth {
+      flex: 1 1 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .brand-row img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+    .brand-row span {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .card h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+    }
+    .card .lead {
+      margin: 0 0 1.5rem;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+    .field {
+      margin-bottom: 1rem;
+    }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .fake-input {
+      height: 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      padding: 0 0.75rem;
+      color: #64748b;
+      font-size: 0.9rem;
+      user-select: none;
+      pointer-events: none;
+    }
+    .fake-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      opacity: 0.85;
+      pointer-events: none;
+      user-select: none;
+    }
+    .family {
+      margin-top: 1.25rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .note {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="approx-banner" role="note">Approximate brand preview — compare with deployed login screen</div>
+  <div class="shell">
+    <section class="hero" aria-label="Login hero">
+      <h1>Build and publish agents</h1>
+      <p>Create agents on Acme Hub, connect the models you need, and put them where your users are.</p>
+    </section>
+    <section class="auth" aria-label="Sign-in preview (non-functional)">
+      <div class="card">
+        <div class="brand-row">
+          <img src="../../branding/assets/acme-mark.svg" alt="" width="40" height="40" />
+          <span>Acme Hub</span>
+        </div>
+        <h2>Sign in to Acme Hub</h2>
+        <p class="lead">Sign in to publish agents and manage models.</p>
+        <div class="field">
+          <label>Email (preview placeholder)</label>
+          <div class="fake-input" aria-hidden="true">you@example.com</div>
+        </div>
+        <div class="field">
+          <label>Password (preview placeholder)</label>
+          <div class="fake-input" aria-hidden="true">••••••••</div>
+        </div>
+        <button type="button" class="fake-btn" disabled aria-disabled="true">Sign in (preview only)</button>
+        <p class="family">Powered by your brand</p>
+        <p class="note">Non-interactive preview. No credentials are collected. Theme from branding/theme-tokens.json; copy from branding/platform-settings.json.</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
