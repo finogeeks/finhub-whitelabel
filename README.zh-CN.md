@@ -6,7 +6,7 @@
 
 **企业智能体的管理中心。** FinHub 让 IT 团队决定谁能使用哪些智能体和工具，并为每次对话保留不可修改的记录。它运行在企业自己的服务器上，可使用我们的智能体引擎 FinClaw，也可使用你们自己的引擎。
 
-了解更多：[finaios.ai 上的 FinHub 产品页](https://finaios.ai/zh-hans/products/finhub/)。本仓库是部署自有品牌 FinHub 的公开模板。
+了解更多：[finaios.ai 上的 FinHub 产品页](https://finaios.ai/zh-hans/products/finhub/)。
 
 面向公开 fork 或克隆的模板，用于部署您自己的 **FinHub** 实例。在本仓库中定制品牌与人设包，然后将您的离线发布 tarball URL 与本目录树交给部署 **AI 代理**。
 
