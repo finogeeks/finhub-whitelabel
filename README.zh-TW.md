@@ -1,5 +1,7 @@
 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
+產品頁：[finaios.ai 上的 FinHub](https://finaios.ai/zh-hant/products/finhub/)
+
 # FinHub 白標客戶範本
 
 面向公開 fork 或克隆的範本，用於部署您自己的 **FinHub** 執行個體。在本儲存庫中自訂品牌與人設包，然後將您的離線發佈 tarball URL 與本目錄樹交給部署 **AI 代理**。
