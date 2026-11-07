@@ -1,3 +1,5 @@
+[English](./customize.md) | [简体中文](./customize.zh-CN.md) | [繁體中文](./customize.zh-TW.md)
+
 # Customize your white-label FinHub
 
 All customer-facing changes for a typical v1 deploy live **in this repository** — no chatkit-web or chatkit-middleware forks required.

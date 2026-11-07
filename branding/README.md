@@ -1,3 +1,5 @@
+[English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+
 # Branding artifacts
 
 Customer-owned copy and static brand for FinHub auth chrome (Option B).

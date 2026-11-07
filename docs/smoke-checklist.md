@@ -1,3 +1,5 @@
+[English](./smoke-checklist.md) | [简体中文](./smoke-checklist.zh-CN.md) | [繁體中文](./smoke-checklist.zh-TW.md)
+
 # Smoke checklist
 
 Run after Phase 1 (default stack) and Phase 2 (white-label overlays) from [`skills/finhub-deploy/SKILL.md`](../skills/finhub-deploy/SKILL.md).

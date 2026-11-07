@@ -1,3 +1,5 @@
+[English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+
 # Docker Compose overlays
 
 White-label overlay: persona pin, platform settings file mount, branding assets at `/static/branding`. Requires the production compose file from your **offline chatkit / FinHub release** (not shipped in this repo).

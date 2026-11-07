@@ -1,3 +1,5 @@
+[English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+
 # Helm overlays
 
 Values and ConfigMap notes for a white-label FinHub deploy. Chart path comes from your **offline release** (e.g. `deploy/k8s/helm/chatkit` in the tarball).
