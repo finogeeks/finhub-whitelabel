@@ -1,0 +1,47 @@
+{
+  "product_name": {
+    "zh": "Acme Hub",
+    "en": "Acme Hub"
+  },
+  "login_hero": {
+    "title": {
+      "zh": "构建并发布智能体",
+      "en": "Build and publish agents"
+    },
+    "subtitle": {
+      "zh": "在 Acme Hub 上创建智能体，连接你需要的模型，并放到用户所在之处。",
+      "en": "Create agents on Acme Hub, connect the models you need, and put them where your users are."
+    }
+  },
+  "auth_login": {
+    "title": {
+      "zh": "登录 Acme Hub",
+      "en": "Sign in to Acme Hub"
+    },
+    "subtitle": {
+      "zh": "登录后可发布智能体并管理模型。",
+      "en": "Sign in to publish agents and manage models."
+    }
+  },
+  "auth_register": {
+    "title": {
+      "zh": "创建 Acme Hub 账户",
+      "en": "Create your Acme Hub account"
+    },
+    "subtitle": {
+      "zh": "发布智能体，用于聊天或嵌到你的网站。",
+      "en": "Publish agents for chat or embed them on your site."
+    }
+  },
+  "family_line": {
+    "zh": "由你们的品牌驱动",
+    "en": "Powered by your brand"
+  },
+  "auth_show_marquee": false,
+  "logo_url": "/static/branding/acme-mark.svg",
+  "document_titles": {
+    "admin": "Acme Hub Admin",
+    "web": "Acme Hub",
+    "mobile": "Acme Hub"
+  }
+}

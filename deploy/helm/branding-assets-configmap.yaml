@@ -1,0 +1,16 @@
+# ConfigMap for brand SVGs under branding/assets/
+#   kubectl create configmap wl-branding-assets \
+#     --from-file=../../branding/assets/ \
+#     -n <namespace> --dry-run=client -o yaml | kubectl apply -f -
+#
+# Mount on chatkit-web at whitelabelBranding.assetsMountPath (/static/branding).
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wl-branding-assets
+  labels:
+    app.kubernetes.io/part-of: finhub-whitelabel
+    finhub/component: branding-assets
+binaryData: {}
+# Add keys when assets are built in CI or applied via --from-file.

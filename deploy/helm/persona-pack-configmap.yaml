@@ -1,0 +1,16 @@
+# ConfigMap stub for persona-templates.json
+#   kubectl create configmap wl-persona-pack \
+#     --from-file=persona-templates.json=../../persona-templates.json \
+#     -n <namespace> --dry-run=client -o yaml | kubectl apply -f -
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wl-persona-pack
+  labels:
+    app.kubernetes.io/part-of: finhub-whitelabel
+    finhub/component: persona-pack
+data:
+  # Prefer --from-file in CI/CD instead of committing a huge literal here.
+  persona-templates.json: |
+    # Replace by piping ../../persona-templates.json into this ConfigMap.

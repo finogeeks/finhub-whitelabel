@@ -1,0 +1,30 @@
+# White-label FinHub overlay — merge with chatkit prod compose from your offline release.
+#
+#   docker compose -f docker-compose.prod.yml \
+#     -f /path/to/finhub-whitelabel/deploy/compose/docker-compose.whitelabel.override.yml up -d
+
+services:
+  persona-service:
+    environment:
+      PERSONA_TEMPLATE_CONFIG_PATH: /pack/persona-templates.json
+    volumes:
+      - ${WL_PERSONA_PACK_HOST_PATH:-../../persona-templates.json}:/pack/persona-templates.json:ro
+
+  identity-service:
+    volumes:
+      - ${WL_PLATFORM_SETTINGS_HOST_PATH:-../../branding/platform-settings.json}:/branding/platform-settings.json:ro
+
+  chatkit-web:
+    volumes:
+      - ${WL_BRANDING_ASSETS_HOST_PATH:-../../branding/assets}:/static/branding:ro
+
+  # One-shot persona sync — use release compose profile `persona-templates-sync`:
+  #
+  #   export PERSONA_TEMPLATE_PACK_HOST_PATH="$WL_PERSONA_PACK_HOST_PATH"
+  #   docker compose -f docker-compose.prod.yml -f deploy/compose/docker-compose.whitelabel.override.yml \
+  #     --profile persona-skill --profile persona-templates-sync \
+  #     run --rm persona-templates-sync -- --dry-run
+  #
+  # Platform settings: after stack is up, seed via admin PUT:
+  #   curl -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
+  #     -H "Content-Type: application/json" -d @branding/platform-settings.json

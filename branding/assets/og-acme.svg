@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Acme Hub">
+  <rect width="1200" height="630" fill="#f8fafc"/>
+  <text x="600" y="320" font-family="Inter, Helvetica, Arial, sans-serif" font-size="72" font-weight="600" text-anchor="middle" fill="#0f172a">Acme Hub</text>
+  <text x="600" y="400" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" text-anchor="middle" fill="#64748b">Your white-label FinHub</text>
+</svg>

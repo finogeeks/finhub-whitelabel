@@ -1,0 +1,39 @@
+{
+  "_comment": "Visual design reference for your white-label skin. Not consumed by chatkit platform settings until upstream theme keys exist.",
+  "_status": "design_sot",
+  "_consumed_by_chatkit": false,
+  "skin_id": "acme-hub",
+  "family": "Your brand",
+  "typography": {
+    "sans": "Inter, Helvetica Neue, Helvetica, Arial, sans-serif",
+    "serif": "Georgia, Times New Roman, serif"
+  },
+  "css_variables": {
+    "--paper": "#f8fafc",
+    "--ink": "#0f172a",
+    "--panel": "#ffffff",
+    "--accent": "#2563eb",
+    "--accent-hover": "#1d4ed8",
+    "--muted": "#64748b",
+    "--rule": "#e2e8f0",
+    "--rule-strong": "#cbd5e1"
+  },
+  "roles": {
+    "background": "paper",
+    "surface": "panel",
+    "text": "ink",
+    "muted_text": "muted",
+    "accent": "accent",
+    "accent_hover": "accent-hover",
+    "border": "rule-strong"
+  },
+  "assets": {
+    "favicon": "assets/favicon.svg",
+    "mark": "assets/acme-mark.svg",
+    "wordmark": "assets/acme-wordmark.svg",
+    "og": "assets/og-acme.svg",
+    "logo_url_recommended": "/static/branding/acme-mark.svg"
+  },
+  "platform_theme_keys": {},
+  "_mount": "/static/branding (compose/Helm); alternate admin logo upload → /platform-uploads/"
+}

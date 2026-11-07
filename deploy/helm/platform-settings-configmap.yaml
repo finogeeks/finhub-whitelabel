@@ -1,0 +1,15 @@
+# ConfigMap stub for Option B platform_settings seed.
+#   kubectl create configmap wl-platform-settings \
+#     --from-file=platform-settings.json=../../branding/platform-settings.json \
+#     -n <namespace> --dry-run=client -o yaml | kubectl apply -f -
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wl-platform-settings
+  labels:
+    app.kubernetes.io/part-of: finhub-whitelabel
+    finhub/component: platform-branding
+data:
+  platform-settings.json: |
+    # Replace via --from-file from branding/platform-settings.json
