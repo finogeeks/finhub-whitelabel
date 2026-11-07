@@ -1,0 +1,30 @@
+# White-label FinHub values overlay (stub)
+# Merge with the chatkit chart from your offline release, e.g.:
+#   helm upgrade --install chatkit deploy/k8s/helm/chatkit \
+#     -f deploy/helm/values-whitelabel.yaml
+#
+# Example hostname (override per environment):
+#   hub.example.com
+
+servicesEnv:
+  persona-service:
+    PERSONA_TEMPLATE_CONFIG_PATH: /pack/persona-templates.json
+
+personaTemplateSyncJob:
+  enabled: true
+  packConfigMap: wl-persona-pack
+  # extraArgs:
+  #   - --dry-run
+
+whitelabelBranding:
+  platformSettingsConfigMap: wl-platform-settings
+  platformSettingsMountPath: /branding/platform-settings.json
+  assetsConfigMap: wl-branding-assets
+  assetsMountPath: /static/branding
+
+ingress:
+  hosts:
+    - host: hub.example.com
+      # paths: chart-specific
+
+# Create ConfigMaps from this repo before first deploy — see deploy/helm/README.md
