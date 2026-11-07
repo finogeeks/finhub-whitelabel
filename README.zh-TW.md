@@ -1,8 +1,12 @@
 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
-產品頁：[finaios.ai 上的 FinHub](https://finaios.ai/zh-hant/products/finhub/)
-
 # FinHub 白標客戶範本
+
+## FinHub 是什麼
+
+**企業 AI 代理的管理中心。** FinHub 讓 IT 團隊決定誰能使用哪些 AI 代理和工具，並為每次對話保留不可修改的紀錄。它運行在企業自己的伺服器上，可使用我們的 AI 代理引擎 FinClaw，也可使用你們自己的引擎。
+
+了解更多：[finaios.ai 上的 FinHub 產品頁](https://finaios.ai/zh-hant/products/finhub/)。
 
 面向公開 fork 或克隆的範本，用於部署您自己的 **FinHub** 執行個體。在本儲存庫中自訂品牌與人設包，然後將您的離線發佈 tarball URL 與本目錄樹交給部署 **AI 代理**。
 

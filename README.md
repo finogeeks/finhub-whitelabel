@@ -1,8 +1,12 @@
 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
-Product page: [FinHub on finaios.ai](https://finaios.ai/en/products/finhub/)
-
 # FinHub white-label customer template
+
+## What is FinHub
+
+**The control center for your company's AI agents.** FinHub lets your IT team control who can use which AI agents and tools, and keeps an uneditable record of every conversation. It runs on your own servers, with our agent engine (FinClaw) or your own.
+
+Learn more on the [FinHub product page at finaios.ai](https://finaios.ai/en/products/finhub/).
 
 Public template for forking or cloning when you deploy your own **FinHub** instance. Customize branding and persona packs in this repo, then point a deploy agent at your offline release tarball and this tree.
 
