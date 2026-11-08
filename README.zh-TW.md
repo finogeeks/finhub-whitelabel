@@ -53,7 +53,7 @@ scripts/
 
 ## 參考部署
 
-已完成 FinHub 外觀的線上執行個體：[finhub.finaios.ai](https://finhub.finaios.ai)（Finogeeks 參考範例 — 並非您 fork 的必選主機名）。產品頁：發佈後見於 finaios.ai 上的 FinHub。
+已完成 FinHub 外觀的線上執行個體：[finhub.finaios.ai](https://finhub.finaios.ai)（Finogeeks 參考範例 — 並非您 fork 的必選主機名）。產品頁：[finaios.ai 上的 FinHub](https://finaios.ai/zh-hant/products/finhub/)。
 
 ## Pack 同步（摘要）
 
