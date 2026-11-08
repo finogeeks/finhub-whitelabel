@@ -58,7 +58,7 @@ artifacts/
 
 ## Reference deploy
 
-A finished FinHub skin is live at [finhub.finaios.ai](https://finhub.finaios.ai) (Finogeeks reference — not a required hostname for your fork). Product page: FinHub on finaios.ai when published.
+A finished FinHub skin is live at [finhub.finaios.ai](https://finhub.finaios.ai) (Finogeeks reference — not a required hostname for your fork). Product page: [FinHub on finaios.ai](https://finaios.ai/en/products/finhub/).
 
 ## Pack sync (summary)
 

@@ -53,7 +53,7 @@ scripts/
 
 ## 参考部署
 
-已完成 FinHub 皮肤的线上实例：[finhub.finaios.ai](https://finhub.finaios.ai)（Finogeeks 参考示例 — 并非您 fork 的必选主机名）。产品页：发布后见于 finaios.ai 上的 FinHub。
+已完成 FinHub 皮肤的线上实例：[finhub.finaios.ai](https://finhub.finaios.ai)（Finogeeks 参考示例 — 并非您 fork 的必选主机名）。产品页：[finaios.ai 上的 FinHub](https://finaios.ai/zh-hans/products/finhub/)。
 
 ## Pack 同步（摘要）
 
