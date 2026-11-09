@@ -15,7 +15,7 @@ Use the name **chatkit** only when tarball paths, compose service names, or imag
 
 | Provided by | Contents |
 |-------------|----------|
-| **Vendor offline release tarball** | Container images (or load instructions), `docker-compose.prod.yml`, `scripts/init-env.sh`, `scripts/fleet.sh`, `.env.example`, bundled README/DEPLOY.md; optional `scripts/gen-secrets.sh`, `scripts/preflight.sh`, finops-staff compose profile / Helm chart values |
+| **Vendor offline release tarball** | Container images (or load instructions), `docker-compose.prod.yml`, `scripts/init-env.sh`, `scripts/gen-secrets.sh`, `scripts/preflight-env.sh`, `scripts/fleet.sh`, `scripts/doctor.sh`, `.env.example`, bundled README/DEPLOY.md; finops-staff compose profile / Helm values when bundled |
 | **This repo** | Branding seed, assets, persona pack, compose/Helm **overlays** only — no runnable stack alone |
 
 If `scripts/gen-secrets.sh` is **missing** in an older release, use the fallback in [Generate secrets](#generate-secrets) — never fabricate deployment license values.
@@ -81,6 +81,17 @@ cd <release-root-per-bundled-readme>   # often one directory down
 
 Read **`README`**, **`DEPLOY.md`**, compose files, and **`.env.example` first**. Service names, ports, and compose file names in the release **override** this skill for Phase 1 mechanics.
 
+**Canonical bootstrap** (when the release bundle ships all scripts):
+
+1. `./scripts/init-env.sh`
+2. `./scripts/gen-secrets.sh`
+3. Operator fills `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER`, `LLM_API_KEY` in `.env`
+4. `./scripts/preflight-env.sh`
+5. `./scripts/fleet.sh up -d` — **also runs preflight automatically**
+6. `./scripts/doctor.sh`
+
+Older bundles may omit scripts; use fallbacks in each step below.
+
 ### 3. Initialize environment
 
 If present:
@@ -101,7 +112,9 @@ Otherwise: copy `.env.example` → `.env` manually and note every `CHANGE_ME` / 
 ./scripts/gen-secrets.sh
 ```
 
-Behavior (when shipped with current upstream releases): mints random values for documented secret env vars, **never overwrites** existing non-empty values, **never prints** secret values to stdout. May include optional finops-staff tokens (`FINOPS_STAFF_ALERT_WEBHOOK_TOKEN`, `FINOPS_STAFF_INTERNAL_API_TOKEN`, `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN`) as empty or generated only when finops-staff is enabled — follow release script help.
+Behavior (current release bundles): mints random values for documented secret env vars, **never overwrites** existing non-empty values, **never prints** secret values to stdout. **Does not** mint `DEPLOYMENT_LICENSE_*` or `LLM_API_KEY`.
+
+Optional finops-staff tokens (`FINOPS_STAFF_ALERT_WEBHOOK_TOKEN`, `FINOPS_STAFF_INTERNAL_API_TOKEN`, `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN`) are generated **only after** the operator uncomments the `FINOPS_STAFF_*` stubs in `.env.example` **§11**, then re-runs `./scripts/gen-secrets.sh`.
 
 **Fallback (older tarball without script):**
 
@@ -120,7 +133,7 @@ Set in `.env` (exact names from release `.env.example`):
 | Class | Examples (names vary by release) | Agent rule |
 |-------|----------------------------------|------------|
 | **Deployment license** | `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER` | Vendor-issued only; **never auto-generate** |
-| **LLM provider** | e.g. OpenAI/Anthropic/Azure keys in `.env.example` | Operator provides; no placeholders in production |
+| **LLM** | `LLM_API_KEY` (or name in `.env.example`) | Operator provides; no placeholders in production |
 | **Public URLs** | `APP_URL`, admin/API bases | Operator chooses hostname |
 | **Admin bootstrap** | First admin user/password if not auto-seeded | Per release README |
 
@@ -129,34 +142,48 @@ Set in `.env` (exact names from release `.env.example`):
 If present:
 
 ```bash
-./scripts/preflight.sh
+./scripts/preflight-env.sh
 ```
 
-If missing or marked placeholder: manually confirm Docker daemon running, `.env` exists, required license and LLM keys are non-empty, disk free, and compose file path matches README.
+If missing: manually confirm Docker daemon running, `.env` exists, `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER`, and `LLM_API_KEY` are non-empty, disk free, and compose file path matches README.
 
 ### 7. Load images and start fleet
 
-Per release README — typical patterns:
+Load images per release README (`docker load`, `docker compose pull`, etc.).
+
+When bundled:
 
 ```bash
-# images
-docker load -i images/*.tar   # or docker compose pull — README decides
-
-# start (example; use fleet.sh when bundled)
 ./scripts/fleet.sh up -d
-# or:
+```
+
+`fleet.sh up -d` **runs preflight automatically**; still run `preflight-env.sh` in step 6 when the operator wants an explicit gate before start.
+
+**Fallback** (no `fleet.sh`):
+
+```bash
 docker compose -f docker-compose.prod.yml up -d
 ```
 
 Use compose **profiles** only when README requires (not for finops-staff until [Optional finops-staff](#optional-finops-staff)).
 
-### 8. Health checks
+### 8. Doctor
+
+If present:
+
+```bash
+./scripts/doctor.sh
+```
+
+If missing: use health checks below.
+
+### 9. Health checks
 
 - `docker compose ps` (or `fleet.sh ps`) — all required services **healthy** or **running** per README.
 - Hit health/readiness URLs documented in release.
 - Tail logs for failing services: `docker compose logs -f --tail=200 <service>`.
 
-### 9. Phase 1 smoke (unbranded)
+### 10. Phase 1 smoke (unbranded)
 
 Before white-label overlays:
 
@@ -272,7 +299,9 @@ Keep kill-switch and issuer URLs as deploy-time env, not admin-console toggles.
 
 **Default: off.** No Slack/Turnstile outbound unless configured.
 
-The finops-staff service may appear in newer releases as an optional compose profile and Helm subchart/values. This repo does not ship the service image — only documents how to enable it when the **release** includes it.
+The finops-staff service may appear in the **release bundle** as an optional compose profile and Helm subchart/values. This repo does not ship the service image — only documents how to enable it when the bundle includes it.
+
+Before enabling the profile or chart: uncomment `FINOPS_STAFF_*` stubs in `.env.example` **§11**, run `./scripts/gen-secrets.sh` again, then set operating mode per operator choice below.
 
 ### Compose (when profile exists in release)
 
@@ -304,7 +333,7 @@ Apply via `helm upgrade` with release chart + `values-whitelabel.yaml`.
 
 ### finops-staff secrets and Slack
 
-- If `scripts/gen-secrets.sh` ran, optional `FINOPS_STAFF_*_TOKEN` vars may exist in `.env`.
+- Uncomment `FINOPS_STAFF_*` stubs in `.env.example` **§11**, then re-run `./scripts/gen-secrets.sh` to mint tokens (only those uncommented slots).
 - **Slack webhook URL** (or equivalent): optional; **empty = no outbound HTTP** to Slack.
 - Do not enable finops-staff in automation without operator confirmation.
 
@@ -314,7 +343,7 @@ Apply via `helm upgrade` with release chart + `values-whitelabel.yaml`.
 
 | Symptom | Checks |
 |---------|--------|
-| Compose exits immediately | `docker compose config` for merge errors; missing `.env` keys called out in preflight |
+| Compose exits immediately | `docker compose config` for merge errors; re-run `preflight-env.sh` or read `doctor.sh` output |
 | License errors on startup | Verify vendor license key/cipher; never substitute random hex |
 | LLM errors / empty replies | Provider key in `.env`, egress, model name in release config |
 | Unhealthy database/redis | Volume permissions, port conflicts, logs from data services |
@@ -358,7 +387,7 @@ Kubernetes: `helm uninstall` per release docs; delete PVCs only with operator ap
 ## Report back (template)
 
 - Release URL, version/sha from archive name, workdir path.
-- Whether `init-env.sh`, `gen-secrets.sh`, `preflight.sh`, `fleet.sh` were present and run.
+- Whether `init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh up -d`, `doctor.sh` were present and run.
 - Secret **names** filled vs still missing (never values).
 - License and LLM keys: operator-supplied yes/no only.
 - Compose/helm files used; white-label overlay paths.

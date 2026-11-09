@@ -24,7 +24,7 @@ Public template for forking or cloning when you deploy your own **FinHub** insta
    - Persona starter pack → [`persona-templates.json`](./persona-templates.json)
    - Host / TLS → [`deploy/compose/`](./deploy/compose/) or [`deploy/helm/`](./deploy/helm/)
 4. **Validate & preview** — `./scripts/validate-artifacts.sh` (no network); optional brand preview via [`skills/finhub-brand/SKILL.md`](./skills/finhub-brand/SKILL.md).
-5. **Deploy** — give an agent the release URL, path to this fork, and credentials. Load [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md): tarball verify → `init-env` / `gen-secrets` (release scripts when present) → fleet up → Phase 2 overlays (Phase 1.5 OAuth or finops-staff only if you need them).
+5. **Deploy** — give an agent the release URL, path to this fork, and credentials. Load [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md): tarball verify → `init-env.sh` → `gen-secrets.sh` → license + `LLM_API_KEY` → `preflight-env.sh` → `fleet.sh up -d` → `doctor.sh` (from the **release bundle** when present) → Phase 2 overlays (Phase 1.5 OAuth or finops-staff only if you need them).
 6. **Smoke** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.md) (include login, chat, streamed reply).
 
 ## Repository layout
@@ -73,7 +73,7 @@ Persona **replace** uses `/app/bin/sync-platform-persona-templates` inside the *
 - No FinHub-named patches inside chatkit-web or chatkit-middleware
 - No required `finhub.finaios.ai` host defaults in deploy config
 - No application source — seeds, mounts, and deploy overlays only
-- No offline release images, `fleet.sh`, `init-env.sh`, or `gen-secrets.sh` — those ship in the vendor tarball (see [`AGENTS.md`](./AGENTS.md))
+- No offline release images or bundle scripts (`init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh`, `doctor.sh`) — those ship in the vendor tarball (see [`AGENTS.md`](./AGENTS.md))
 
 ## Support path
 

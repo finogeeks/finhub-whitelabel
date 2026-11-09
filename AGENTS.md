@@ -16,13 +16,22 @@ Human-readable summary of the same flow: [`docs/agent-deploy-runbook.md`](docs/a
 
 - Offline release tarball **URL or file path** (and checksum/signature files when the vendor provides them).
 - **Deployment license** values from the vendor (`DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER` or names documented in the release `.env.example`). **Never invent license keys.**
-- At least one **LLM provider API key** (or equivalent) named in the release `.env.example`.
+- **`LLM_API_KEY`** (or the name documented in the release `.env.example` for your LLM provider).
 - Target **public hostname** and TLS plan (or explicit HTTP-only lab mode if the release allows it).
 - Admin credentials for platform-settings seeding after the stack is up.
 
 ## What the release tarball provides (not in this repo)
 
-Typical offline bundles include pre-built images (or load instructions), `docker-compose.prod.yml`, `scripts/init-env.sh`, `scripts/fleet.sh`, and increasingly `scripts/gen-secrets.sh` and `scripts/preflight.sh`. Exact names and layout are defined in the **bundled README** inside the tarball—follow that README when it disagrees with this repo for core stack bring-up.
+Typical **release bundles** include images (or load instructions), `docker-compose.prod.yml`, and scripts such as `init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh`, and `doctor.sh`. Canonical order when all are present:
+
+1. `scripts/init-env.sh`
+2. `scripts/gen-secrets.sh`
+3. Operator sets `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER`, and `LLM_API_KEY` in `.env`
+4. `scripts/preflight-env.sh`
+5. `scripts/fleet.sh up -d` (also runs preflight automatically)
+6. `scripts/doctor.sh`
+
+Exact names and layout are defined in the **bundled README** inside the tarball—follow that README when it disagrees with this repo for core stack bring-up.
 
 ## Hard rules for agents
 
