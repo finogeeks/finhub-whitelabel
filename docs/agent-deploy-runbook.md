@@ -1,90 +1,74 @@
-[English](./agent-deploy-runbook.md)
+[English](./agent-deploy-runbook.md) | [简体中文](./agent-deploy-runbook.zh-CN.md) | [繁體中文](./agent-deploy-runbook.zh-TW.md)
 
-# Agent deploy runbook (human-readable)
+# Agent deploy runbook
 
-Same flow as [`skills/finhub-deploy/SKILL.md`](../skills/finhub-deploy/SKILL.md) and [`AGENTS.md`](../AGENTS.md), written for operators who brief a coding agent (Cursor, Claude Code, Codex, etc.).
+End-to-end path for operators and coding agents: bring up a **licensed** FinHub stack from an offline release, then apply this white-label repo.
 
-## What you need before the agent starts
+## Preconditions
 
-1. **This repo** — fork or clone; customize `branding/` and `persona-templates.json`.
-2. **Offline release tarball** — URL or file from your vendor (images + compose + scripts). This public repo cannot start servers by itself.
-3. **Deployment license** — key and cipher from the vendor; the agent must not invent these.
-4. **`LLM_API_KEY`** — per the release `.env.example`.
-5. **Hostname and TLS** — e.g. `https://hub.example.com` for `APP_URL` and admin API calls.
+| Item | Notes |
+|------|--------|
+| Host | Docker Engine + Compose v2 (or Kubernetes + Helm per release) |
+| Tooling on host | `openssl`, `bun` (bundled in some offline packages) |
+| Supplier license | `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER` (paste into `.env` — never mint) |
+| LLM | `LLM_API_KEY` and provider settings for production inference |
+| White-label fork | Clone [`finogeeks/finhub-whitelabel`](https://github.com/finogeeks/finhub-whitelabel); run `./scripts/validate-artifacts.sh` |
 
-Optional later: Identity OAuth, finops-staff, Turnstile, Slack webhooks — all **opt-in**.
+On-prem: leave **Turnstile** (`TURNSTILE_*`) unset unless internet-facing signup needs Cloudflare Turnstile. See [Environment reference](./operations/env-reference.md).
 
-## Recommended agent order
+## Phase A — Release runtime (in tarball tree)
 
-1. **Brand gate** — `skills/finhub-brand`: `./scripts/validate-artifacts.sh` (and optional login preview).
-2. **Deploy** — `skills/finhub-deploy`: tarball → env → secrets → fleet up → white-label overlay → smoke.
-3. **Checklist** — `docs/smoke-checklist.md`.
-
-## Phase summary
-
-### Prepare the fork (no Docker)
+Run from the release root (often `deploy/` or the directory that contains `docker-compose.prod.yml` and `scripts/`).
 
 ```bash
-git clone https://github.com/finogeeks/finhub-whitelabel
-cd finhub-whitelabel
-./scripts/validate-artifacts.sh
+./scripts/init-env.sh
+./scripts/gen-secrets.sh
+# Edit .env: DEPLOYMENT_LICENSE_KEY, DEPLOYMENT_LICENSE_CIPHER, LLM_API_KEY, CHATKIT_REGISTRY / version as needed
+./scripts/preflight-env.sh
+# Offline bundle only:
+./scripts/load-images.sh
+./scripts/fleet.sh up -d
+./scripts/doctor.sh
 ```
 
-Edit branding and persona files; re-run validate until it passes.
+Details: [Install / first start](./operations/install.md).
 
-### Bootstrap the release bundle
+**Dev/drill only** (not production): `FLEET_SKIP_PREFLIGHT=1 ./scripts/fleet.sh up -d` prints a warning and skips `preflight-env.sh`.
 
-On the target host:
+## Phase B — White-label (this repo)
 
-1. Download and verify the tarball (checksum/signature if the vendor provided files).
-2. Unpack and read the **bundled README** and `.env.example`.
-3. `./scripts/init-env.sh` — or copy `.env.example` → `.env` on older bundles.
-4. `./scripts/gen-secrets.sh` — random secrets only; never license or `LLM_API_KEY`. **Fallback:** `openssl rand -hex 32` per empty non-license slot when the script is absent.
-5. You set **`DEPLOYMENT_LICENSE_KEY`**, **`DEPLOYMENT_LICENSE_CIPHER`**, and **`LLM_API_KEY`** in `.env`.
-6. `./scripts/preflight-env.sh` — **Fallback:** manual checklist (Docker, `.env`, license, LLM key, disk).
-7. `./scripts/fleet.sh up -d` — runs preflight again automatically. **Fallback:** `docker compose` per README.
-8. `./scripts/doctor.sh` — post-start diagnostics when bundled.
-9. Smoke: login → message → **streamed** reply.
+Load [`skills/finhub-deploy/SKILL.md`](../skills/finhub-deploy/SKILL.md) Phase 2:
 
-### Apply white-label overlay (this repo)
+- Merge `deploy/compose/docker-compose.whitelabel.override.yml`
+- Pin persona pack; optional platform-settings PUT
+- Helm: `deploy/helm/values-whitelabel.yaml` when on Kubernetes
 
-Set `WL_REPO` to your clone path, merge `deploy/compose/docker-compose.whitelabel.override.yml`, run persona sync (dry-run, then apply), PUT `branding/platform-settings.json` to the admin API. Details in the deploy skill and `deploy/compose/README.md`.
+## Phase C — Optional finops-staff
 
-Helm deployments use `deploy/helm/values-whitelabel.yaml` plus ConfigMaps built from this repo.
+Supervised diagnostics and **human-approved** repairs only. Disabled by default.
 
-### Optional: OAuth
+```bash
+docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profile finops-staff up -d
+```
 
-Only if you asked for it. Set `OAUTH_PROVIDER_ENABLED=true` and related URLs; register OAuth clients using scripts in the **release bundle**. See `deploy/oauth-provider.env.example`.
+Helm: `finopsStaff.enabled=true` with `finopsStaff.policyMode=readonly` until SecAI approves `supervised`. See [finops-staff](./operations/finops-staff.md).
 
-### Optional: finops-staff
+## Phase D — Smoke
 
-Only if the **release bundle** includes the service and you explicitly want it:
+[`docs/smoke-checklist.md`](./smoke-checklist.md) after Phase A and B.
 
-- Uncomment `FINOPS_STAFF_*` in `.env.example` **§11**, re-run `gen-secrets.sh`, then enable compose `--profile finops-staff` or Helm `finopsStaff.enabled: true` (see `deploy/helm/values-whitelabel.yaml`).
+## Agent checklist (copy)
 
-Start in **readonly**. **Supervised** mode and repair alerts only if you opt in. **Auto-act** stays off. Empty Slack webhook = no outbound Slack calls.
+- [ ] Release tarball verified (HTTP 200, expected sha in filename)
+- [ ] `init-env.sh` → `gen-secrets.sh` (idempotent; chmod 600 `.env`)
+- [ ] License + LLM keys set by operator (not generated)
+- [ ] `preflight-env.sh` passed (or documented `FLEET_SKIP_PREFLIGHT` for non-prod only)
+- [ ] `fleet.sh up -d` healthy; `doctor.sh` clean
+- [ ] White-label override applied; persona sync dry-run then apply
+- [ ] Smoke checklist complete
+- [ ] No secrets in git, chat, or logs
 
-## Auto-generated vs human-provided
+## Related
 
-| Auto-generated (when `gen-secrets.sh` exists or `openssl` fallback) | Human / vendor only |
-|-----------------------------------------------------------------------|---------------------|
-| Session/JWT/database/redis passwords and similar slots in `.env.example` | `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER` |
-| `FINOPS_STAFF_*_TOKEN` only after **§11** stubs are uncommented and `gen-secrets.sh` is re-run | `LLM_API_KEY` |
-| | Public hostname / TLS certificates |
-| | OAuth client secrets (vault) |
-| | Slack webhook URL (optional) |
-
-## Teardown
-
-From the release directory: `docker compose … down` (add `-v` only if you intend to wipe data). Uninstall Helm releases per vendor docs.
-
-## Still depends on the release bundle
-
-| In the release bundle | Not in finhub-whitelabel |
-|-----------------------|---------------------------|
-| Container images | Runnable compose stack |
-| `docker-compose.prod.yml` | Application source |
-| `init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh`, `doctor.sh` | License material |
-| Persona sync binary in image | finops-staff image (when not bundled) |
-
-When a bundle adds or renames scripts, the bundled README wins for paths and flags; this repo documents the intended agent workflow across release versions.
+- [`AGENTS.md`](../AGENTS.md) — agent entry index
+- [`docs/operations/day-2-ops.md`](./operations/day-2-ops.md) — upgrades and maintenance

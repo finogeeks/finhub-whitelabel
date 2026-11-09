@@ -11,6 +11,8 @@ Deploy **FinHub** from an **offline release tarball**, configure secrets and lic
 
 Use the name **chatkit** only when tarball paths, compose service names, or image names in the release still use that legacy name.
 
+Operator doc map: [`AGENTS.md`](../../AGENTS.md), [`docs/agent-deploy-runbook.md`](../../docs/agent-deploy-runbook.md), [`docs/operations/install.md`](../../docs/operations/install.md), [`docs/operations/env-reference.md`](../../docs/operations/env-reference.md).
+
 ## Scope and dependencies
 
 | Provided by | Contents |
@@ -257,6 +259,18 @@ Run when the default stack is healthy and the operator wants this fork's brandin
 
 ---
 
+## Phase 1.6 — finops-staff (opt-in only)
+
+Optional alert diagnose + **human-approved** repairs; **not** on the chat path. Default **off**.
+
+1. Docs: [`docs/operations/finops-staff.md`](../../docs/operations/finops-staff.md), notifications: [`docs/operations/finops-notifications.md`](../../docs/operations/finops-notifications.md).
+2. Keep `FINOPS_STAFF_AUTO_ACT_DISABLED=true` and `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`.
+3. Compose: `docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profile finops-staff up -d`
+4. Helm: `finopsStaff.enabled=true`, `policyMode=readonly` until SecAI approves `supervised`.
+5. Uncomment finops token stubs in `.env`, run `gen-secrets.sh` again (names only on stdout).
+
+Do **not** enable unattended auto-act or closed-loop for customers.
+
 ## Phase 1.5 — Identity OAuth (opt-in only)
 
 Run **only** when the operator explicitly needs OAuth / embed “Sign in with …” on this Identity host.
@@ -345,6 +359,7 @@ Apply via `helm upgrade` with release chart + `values-whitelabel.yaml`.
 |---------|--------|
 | Compose exits immediately | `docker compose config` for merge errors; re-run `preflight-env.sh` or read `doctor.sh` output |
 | License errors on startup | Verify vendor license key/cipher; never substitute random hex |
+| Skipped preflight in prod | Remove `FLEET_SKIP_PREFLIGHT`; run `preflight-env.sh` (bypass prints warning — dev/drill only) |
 | LLM errors / empty replies | Provider key in `.env`, egress, model name in release config |
 | Unhealthy database/redis | Volume permissions, port conflicts, logs from data services |
 | Branding PUT fails | `ADMIN_BASE` URL, TLS trust, admin auth, JSON from `branding/platform-settings.json` |

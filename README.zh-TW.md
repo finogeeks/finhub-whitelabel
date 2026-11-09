@@ -12,7 +12,7 @@
 
 **FinHub** 是對客戶展示的產品名稱。上游離線發佈套件中的映像或 compose 名稱仍可能使用 `chatkit`，這是預期行為。
 
-> **AI 代理：**安裝與部署請參閱 [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md)，請勿僅依據本 README。
+> **AI 代理：**從 [`AGENTS.md`](./AGENTS.md) 開始；安裝與部署請參閱 [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) 與 [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.zh-TW.md)。
 
 ## 快速開始
 
@@ -24,8 +24,9 @@
    - 人設入門包 → [`persona-templates.json`](./persona-templates.json)
    - 主機 / TLS → [`deploy/compose/`](./deploy/compose/) 或 [`deploy/helm/`](./deploy/helm/)
 4. **驗證** — `./scripts/validate-artifacts.sh`（無需網路）。
-5. **部署** — 向 **AI 代理** 提供發佈 URL、本 fork 路徑及憑證。載入 [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) 並依 Phase 1 → Phase 2 執行（僅在需要時執行 Phase 1.5 OAuth）。
-6. **冒煙** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.md)。
+5. **執行環境引導**（在發佈套件目錄）— `init-env.sh` → `gen-secrets.sh` → 授權與 `LLM_API_KEY` → `preflight-env.sh` → `fleet.sh up -d` → `doctor.sh`。見 [`docs/operations/install.zh-TW.md`](./docs/operations/install.zh-TW.md)。
+6. **部署** — 向 **AI 代理** 提供發佈 URL、本 fork 路徑及憑證。載入 [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) 並依 Phase 1 → Phase 2 執行（僅在需要時執行 Phase 1.5 OAuth 或 finops-staff）。
+7. **冒煙** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.zh-TW.md)。
 
 ## 儲存庫結構
 
@@ -41,7 +42,10 @@ deploy/
   compose/                     # mounts, PERSONA_TEMPLATE_CONFIG_PATH, sync profile
   helm/                        # values + ConfigMap stubs
   oauth-provider.env.example   # opt-in OAuth only
+AGENTS.md
 docs/
+  agent-deploy-runbook.zh-TW.md
+  operations/                  # 安裝、環境變數、finops、通知、日常維運
   persona-pack-pin.md
   customize.md
   smoke-checklist.md
@@ -64,7 +68,8 @@ scripts/
 - 不在 chatkit-web 或 chatkit-middleware 內的 FinHub 命名修補
 - 部署設定中無必需的 `finhub.finaios.ai` 主機預設值
 - 無應用程式原始碼 — 僅種子、掛載與部署覆寫層
+- 無離線映像與捆綁腳本（`init-env.sh`、`gen-secrets.sh`、`preflight-env.sh`、`fleet.sh`、`doctor.sh`）— 見供應商發佈套件與 [`AGENTS.md`](./AGENTS.md)
 
 ## 支援路徑
 
-在此自訂製品 → **AI 代理** 以您的發佈 URL 執行 `skills/finhub-deploy` → 冒煙清單。OAuth 與進階 embed RP 連線為選用（[`deploy/oauth-provider.env.example`](./deploy/oauth-provider.env.example)）。
+在此自訂製品 → 在發佈套件中完成環境引導（[`docs/operations/install.zh-TW.md`](./docs/operations/install.zh-TW.md)）→ **AI 代理** 執行 `skills/finhub-deploy` → 冒煙清單。選用 finops-staff 預設關閉（[`docs/operations/finops-staff.zh-TW.md`](./docs/operations/finops-staff.zh-TW.md)）。OAuth 與進階 embed RP 為選用（[`deploy/oauth-provider.env.example`](./deploy/oauth-provider.env.example)）。
