@@ -1,0 +1,30 @@
+# Dev / lab only — do not commit real tokens. For production use finopsStaff.existingSecret.
+#
+#   kubectl create secret generic finops-staff-auth \
+#     --from-literal=alert_webhook_token=<alert-webhook-token> \
+#     --from-literal=internal_api_token=<internal-api-token> \
+#     --from-literal=approval_webhook_token=<approval-webhook-token> \
+#     -n <namespace>
+#
+#   helm upgrade chatkit <chart-path> \
+#     -f values.yaml -f values-finops-staff-auth.example.yaml \
+#     --set finopsStaff.enabled=true \
+#     --set finopsStaff.existingSecret=finops-staff-auth
+
+finopsStaff:
+  enabled: true
+  policyMode: readonly
+  autoActDisabled: true
+  closedLoopEnabled: false
+  existingSecret: finops-staff-auth
+  secretKeys:
+    alertWebhookToken: alert_webhook_token
+    internalApiToken: internal_api_token
+    approvalWebhookToken: approval_webhook_token
+  notifyMinSeverity: warning
+  # Alternative to existingSecret (non-prod chart-rendered Secret only):
+  # createSecret:
+  #   enabled: true
+  #   alertWebhookToken: "<alert-webhook-token>"
+  #   internalApiToken: "<internal-api-token>"
+  #   approvalWebhookToken: ""

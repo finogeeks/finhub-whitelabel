@@ -19,11 +19,14 @@ docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profil
 
 ```bash
 helm upgrade --install <release> <chart-path> \
+  -f deploy/helm/values-whitelabel.yaml \
+  -f <release-chart>/values-finops-staff-auth.example.yaml \
   --set finopsStaff.enabled=true \
-  --set finopsStaff.policyMode=readonly
+  --set finopsStaff.policyMode=readonly \
+  --set finopsStaff.existingSecret=finops-staff-auth
 ```
 
-Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values + rendered env) both default **auto-act off** and **closed-loop off**: `FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false` unless the operator overrides them. Release behavior verified at `eaf6b93b`.
+Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values + rendered env) both default **auto-act off** and **closed-loop off**: `FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false` unless the operator overrides them. Release behavior verified at `cb3e6418`.
 
 | Item | Value |
 |------|--------|
@@ -109,6 +112,34 @@ After uncommenting stub lines in `.env`, run `./scripts/gen-secrets.sh`:
 | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` | Alertmanager webhook |
 | `FINOPS_STAFF_INTERNAL_API_TOKEN` | `POST /internal/*` (health stays open) |
 | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` | Optional approval webhook gate |
+
+## Helm auth secrets
+
+Production: create a Kubernetes Secret **outside** git, then point the release chart at it. Never commit real tokens.
+
+```bash
+kubectl create secret generic finops-staff-auth \
+  --from-literal=alert_webhook_token=<alert-webhook-token> \
+  --from-literal=internal_api_token=<internal-api-token> \
+  --from-literal=approval_webhook_token=<approval-webhook-token> \
+  -n <namespace>
+```
+
+| Helm value | Default | Maps to pod env |
+|------------|---------|-----------------|
+| `finopsStaff.existingSecret` | `""` | Secret name holding auth keys (preferred in prod) |
+| `finopsStaff.secretKeys.alertWebhookToken` | `alert_webhook_token` | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` |
+| `finopsStaff.secretKeys.internalApiToken` | `internal_api_token` | `FINOPS_STAFF_INTERNAL_API_TOKEN` |
+| `finopsStaff.secretKeys.approvalWebhookToken` | `approval_webhook_token` | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` |
+| `finopsStaff.createSecret.enabled` | `false` | **Dev/lab only** — chart renders a Secret when `true` and `existingSecret` is empty; set literal fields under `createSecret.*` to placeholders such as `<alert-webhook-token>` |
+| `finopsStaff.notifyMinSeverity` | `warning` | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` — floor for outbound notifications: `info`, `warning`, or `critical` |
+
+Overlay examples in this repo (paths relative to your release chart tree):
+
+- [`deploy/helm/values-finops-staff-auth.example.yaml`](../../deploy/helm/values-finops-staff-auth.example.yaml) — `existingSecret` + commented `createSecret` dev block
+- [`deploy/helm/values-alertmanager-finops.example.yaml`](../../deploy/helm/values-alertmanager-finops.example.yaml) — kube-prometheus-stack receivers; finops-staff webhook uses `bearer_token_file` (not inline `bearer_token`)
+
+**Alertmanager:** mount the same `alert_webhook_token` key into Alertmanager (for example `alertmanager.extraSecretMounts` on kube-prometheus-stack) at the path referenced by `bearer_token_file` in your receiver config. Merge [`deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml`](../../deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml) or the release `values-alertmanager-finops.example.yaml`.
 
 ## Prometheus
 

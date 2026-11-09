@@ -88,7 +88,19 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose overlay (`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`) and Helm (`finopsStaff.autoActDisabled: true`, `finopsStaff.closedLoopEnabled: false`, always rendered into the pod unless overridden) match the table above. Verified at release semantics `eaf6b93b`.
+Compose overlay (`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`) and Helm (`finopsStaff.autoActDisabled: true`, `finopsStaff.closedLoopEnabled: false`, always rendered into the pod unless overridden) match the table above. Verified at release semantics `cb3e6418`.
+
+## finops-staff on Helm (auth and notify)
+
+When using the release chart’s `finopsStaff` block, prefer **`finopsStaff.existingSecret`** over plain env for tokens. The chart reads keys via **`finopsStaff.secretKeys`** (defaults below). **`finopsStaff.createSecret.enabled: true`** is for dev/lab only (chart-rendered Secret). Set **`finopsStaff.notifyMinSeverity`** to `info`, `warning`, or `critical` (default `warning`) — same semantics as `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` on compose.
+
+| Helm value | Default secret key | Compose `.env` equivalent |
+|------------|-------------------|---------------------------|
+| `secretKeys.alertWebhookToken` | `alert_webhook_token` | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` |
+| `secretKeys.internalApiToken` | `internal_api_token` | `FINOPS_STAFF_INTERNAL_API_TOKEN` |
+| `secretKeys.approvalWebhookToken` | `approval_webhook_token` | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` |
+
+Example overlays: [`deploy/helm/values-finops-staff-auth.example.yaml`](../../deploy/helm/values-finops-staff-auth.example.yaml). Wire Alertmanager with `bearer_token_file` from the same Secret — see [`deploy/helm/values-alertmanager-finops.example.yaml`](../../deploy/helm/values-alertmanager-finops.example.yaml) and [finops-staff](./finops-staff.md#helm-auth-secrets).
 
 ## JWT and license
 

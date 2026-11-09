@@ -6,7 +6,7 @@ FinHub runs without a monitoring stack. Chat, gateways, and databases operate on
 
 When you opt in to **finops-staff** (see [FinOps staff](./finops-staff.md)), the agent **reads** Prometheus (PromQL) and **receives** Alertmanager webhooks. It does not replace your monitoring toolchain.
 
-This guide is verified against FinHub release layout at vendor commit `64baa121` (compose profiles, Helm templates, alert rules). Exact file paths live in your **offline release**; this public repo ships [example snippets](../../deploy/monitoring/) only.
+This guide is verified against FinHub release layout at vendor commit `cb3e6418` (compose profiles, Helm templates, alert rules). Exact file paths live in your **offline release**; this public repo ships [example snippets](../../deploy/monitoring/) only.
 
 ## Architecture
 
@@ -79,7 +79,6 @@ Rule source: `deploy/observability/finops-alert-rules.yaml` in the release (copy
 | `FinHubFinOpsClawReadyBelowDesired` | warning | ticket | StatefulSet ready/desired &lt; 80% (kube-state-metrics proxy) |
 | `FinHubFinOpsAdapterProbeFailed` | critical | page | finclaw scrape/health probe down |
 | `FinHubFinOpsCapabilityRegression` | warning | ticket | finclaw loop recovery rate low with enough signals |
-| `FinHubFinOpsReconcileStuck` | warning | ticket | **Stub** — needs `chatkit_claw_fleet_reconcile_stuck` metric (not shipped; rule idle) |
 | `FinHubFinOpsComposeFinclawScrapeDown` | critical | page | Compose: `up{job="chatkit-ai-infra-rs",stack="compose"}==0` |
 
 Routing labels: `chatkit_finops_alert` identifies the signal family for finops-staff and notification templates.
@@ -148,9 +147,9 @@ observability:
         release: kube-prometheus-stack
 ```
 
-**Alertmanager receivers** are owned by your cluster chart. The release documents placeholders in `values.yaml` → `observability.alertmanager` and a full example file `values-alertmanager-finops.example.yaml` (Slack/PagerDuty placeholders — not rendered by the FinHub chart). Wire a `webhook_configs` entry to finops-staff the same way as compose.
+**Alertmanager receivers** are owned by your cluster chart. The release documents placeholders in `values.yaml` → `observability.alertmanager` and a full example file `values-alertmanager-finops.example.yaml` in the release (and [public overlay](../../deploy/helm/values-alertmanager-finops.example.yaml); Slack/PagerDuty placeholders — not rendered by the FinHub chart). Wire `finhub-finops-staff` (or your receiver name) with `http_config.bearer_token_file` — mount the same Secret key as `finopsStaff.secretKeys.alertWebhookToken` (default `alert_webhook_token`). See [deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml](../../deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml).
 
-**finops-staff on Kubernetes** (`finopsStaff.enabled=true`): Deployment + Service; values include `finopsStaff.prometheusUrl` (default `http://prometheus-operated:9090`), `fleetManagerUrl`, `policyMode: readonly`, `autoActDisabled: true`, `closedLoopEnabled: false`. The chart template **does not** mount `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN`; set it via your site secrets overlay or additional env (required for webhook auth).
+**finops-staff on Kubernetes** (`finopsStaff.enabled=true`): Deployment + Service; values include `finopsStaff.prometheusUrl` (default `http://prometheus-operated:9090`), `fleetManagerUrl`, `policyMode: readonly`, `autoActDisabled: true`, `closedLoopEnabled: false`, and `notifyMinSeverity: warning` (`info` \| `warning` \| `critical`). Webhook and internal API tokens are wired via **`finopsStaff.existingSecret`** (production) or **`finopsStaff.createSecret.enabled`** (dev/lab chart-rendered Secret only). See [FinOps staff — Helm auth](./finops-staff.md#helm-auth-secrets) and [deploy/helm/README.md](../../deploy/helm/README.md).
 
 If your cluster lacks Prometheus Operator CRDs, use plain scrape config against claw Service DNS names and load the rule YAML with your Prometheus server's `rule_files` mechanism — do not enable `serviceMonitor` or `prometheusRule` in the FinHub chart.
 
@@ -226,8 +225,7 @@ The release labels this stack **dogfood**. Before production:
 | **Grafana default admin** | Weak if exposed | Strong password, SSO, or don't expose Grafana publicly |
 | **Unauthenticated `/metrics`** | Leak operational detail | NetworkPolicy, internal-only Services, scrape via mesh |
 | **Many alert rules idle on compose** | False sense of coverage | Add kube/ingress/postgres scrape jobs or accept compose-only firing rules |
-| **Helm alert webhook token** | Webhook auth not templated | Inject `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` via secret overlay |
-| **`FinHubFinOpsReconcileStuck`** | Metric not implemented | Use fleet-manager logs per runbook in release bundle |
+| **Alertmanager ↔ staff token drift** | Webhook 401 | Mount bearer file from the same Secret as `finopsStaff.existingSecret`; match `secretKeys.alertWebhookToken` |
 
 ---
 

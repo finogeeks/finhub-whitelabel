@@ -88,7 +88,19 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose 覆盖（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）与 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆盖否则始终写入 Pod env）均与上表一致。已在发布语义 `eaf6b93b` 核对。
+Compose 覆盖（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）与 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆盖否则始终写入 Pod env）均与上表一致。已在发布语义 `cb3e6418` 核对。
+
+## Helm 上的 finops-staff（认证与通知）
+
+生产环境优先使用 **`finopsStaff.existingSecret`**，勿在 values 中写明文令牌。Chart 通过 **`finopsStaff.secretKeys`** 读取键名（默认如下）。**`finopsStaff.createSecret.enabled: true`** 仅用于开发/实验室（由 Chart 渲染 Secret）。**`finopsStaff.notifyMinSeverity`** 为 `info`、`warning` 或 `critical`（默认 `warning`），与 compose 的 `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` 一致。
+
+| Helm 值 | 默认 Secret 键 | 等效 compose `.env` |
+|---------|----------------|---------------------|
+| `secretKeys.alertWebhookToken` | `alert_webhook_token` | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` |
+| `secretKeys.internalApiToken` | `internal_api_token` | `FINOPS_STAFF_INTERNAL_API_TOKEN` |
+| `secretKeys.approvalWebhookToken` | `approval_webhook_token` | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` |
+
+示例：[`deploy/helm/values-finops-staff-auth.example.yaml`](../../deploy/helm/values-finops-staff-auth.example.yaml)。Alertmanager 通过 `bearer_token_file` 挂载同一 Secret — 见 [`deploy/helm/values-alertmanager-finops.example.yaml`](../../deploy/helm/values-alertmanager-finops.example.yaml) 与 [finops-staff](./finops-staff.zh-CN.md#helm-认证密钥)。
 
 ## JWT 与许可证
 

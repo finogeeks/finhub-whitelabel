@@ -1,0 +1,47 @@
+# Example overlay: wire FinHub FinOps Alertmanager receivers into kube-prometheus-stack.
+# Apply beside your cluster's prometheus chart values — the FinHub chart does not deploy Alertmanager.
+#
+#   helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack \
+#     -f values-alertmanager-finops.example.yaml
+#
+# Match `chatkit_route` and `chatkit_finops_alert` labels from deploy/monitoring/finops-alert-rules.yaml.
+# Mount the alert webhook token key from finopsStaff.existingSecret (default alert_webhook_token)
+# via alertmanager.extraSecretMounts so bearer_token_file below resolves.
+
+alertmanager:
+  config:
+    route:
+      receiver: finhub-finops-default
+      group_by: [alertname, namespace, chatkit_finops_alert]
+      routes:
+        - matchers:
+            - chatkit_route="page"
+          receiver: finhub-finops-page
+          repeat_interval: 30m
+        - matchers:
+            - chatkit_route="ticket"
+          receiver: finhub-finops-ticket
+          repeat_interval: 4h
+    receivers:
+      # Phase 2+ diagnose staff (readonly). Same alert webhook token as finopsStaff.existingSecret.
+      - name: finhub-finops-staff
+        webhook_configs:
+          - url: http://finops-staff:26116/webhooks/alertmanager
+            send_resolved: true
+            http_config:
+              bearer_token_file: /etc/alertmanager/secrets/finops-alert-webhook-token
+      - name: finhub-finops-default
+        slack_configs:
+          - channel: "#finhub-finops"
+            api_url_file: /etc/alertmanager/secrets/slack-webhook-url
+            send_resolved: true
+      - name: finhub-finops-page
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-routing-key
+        slack_configs:
+          - channel: "#finhub-finops-page"
+            api_url_file: /etc/alertmanager/secrets/slack-page-webhook-url
+      - name: finhub-finops-ticket
+        slack_configs:
+          - channel: "#finhub-finops-tickets"
+            api_url_file: /etc/alertmanager/secrets/slack-ticket-webhook-url
