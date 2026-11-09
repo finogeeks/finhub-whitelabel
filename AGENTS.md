@@ -28,7 +28,7 @@ Optional branding validation: [`skills/finhub-brand/SKILL.md`](./skills/finhub-b
 - **Never** invent `DEPLOYMENT_LICENSE_KEY` / `DEPLOYMENT_LICENSE_CIPHER` — supplier only.
 - On-prem default: **zero external dependencies** (no Slack, no Turnstile) unless the operator opts in.
 - `finops-staff` is optional; stopping it does **not** stop chat. Compose and Helm both default **auto-act off** and **closed-loop off** (`FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`) unless overridden; do not enable unattended auto-act or closed-loop for customers.
-- Bootstrap/finops env semantics in this repo were verified at offline-release git `69ef8cd4` (no private repo links in customer docs).
+- Bootstrap/finops env semantics in this repo were verified at offline-release git `eaf6b93b` (no private repo links in customer docs).
 - If release README conflicts with this repo for **unpack/start** commands, follow the **release README** and report the conflict.
 
 ## Report back
