@@ -9,6 +9,11 @@ Run after Phase 1 (default stack) and Phase 2 (white-label overlays) from [`skil
 - [ ] Release unpacked and compose or Helm deploy reports healthy services (`docker compose ps` or equivalent).
 - [ ] Login / app URL responds (your configured host, e.g. `https://hub.example.com`).
 
+## Core product (Phase 1)
+
+- [ ] Sign in with bootstrap or configured admin credentials.
+- [ ] Send a chat message and receive a **streamed** assistant reply (tokens/chunks arrive over time — not only a single blocking response).
+
 ## Branding (Option B)
 
 - [ ] Splash and login show **your** `product_name` from `branding/platform-settings.json` (not upstream default product strings).
