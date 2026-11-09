@@ -16,6 +16,8 @@ End-to-end path for operators and coding agents: bring up a **licensed** FinHub 
 
 On-prem: leave **Turnstile** (`TURNSTILE_*`) unset unless internet-facing signup needs Cloudflare Turnstile. See [Environment reference](./operations/env-reference.md).
 
+Optional later: Identity OAuth, finops-staff, monitoring (Prometheus stack or reuse), Turnstile, Slack webhooks — all **opt-in**. Monitoring wiring: [`docs/operations/monitoring.md`](./operations/monitoring.md), [`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md).
+
 ## Phase A — Release runtime (in tarball tree)
 
 Run from the release root (often `deploy/` or the directory that contains `docker-compose.prod.yml` and `scripts/`).

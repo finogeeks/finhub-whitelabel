@@ -1,0 +1,181 @@
+# FinHub FinOps Phase 1 alert rule groups (canonical copy).
+
+#
+# Loaded by:
+#   - Helm PrometheusRule (kube-prometheus-stack / Prometheus Operator)
+#   - Compose dogfood Prometheus (rule_files mount)
+#
+# Several expressions assume cluster-level series (kubelet, kube-state-metrics,
+# postgres_exporter). Compose dogfood only evaluates finclaw `up` / Observer
+# series unless you add matching scrape jobs. See docs/operations/observability.md.
+
+groups:
+  - name: chatkit.finops.platform
+    rules:
+      - alert: FinHubFinOpsDiskLogVolumeHigh
+        expr: |
+          (
+            min by (namespace, persistentvolumeclaim) (
+              kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".+"}
+              / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".+"}
+            ) < 0.15
+          )
+          or
+          (
+            min by (namespace, pod, container) (
+              container_fs_usage_bytes{container!=""}
+              / clamp_min(container_fs_limit_bytes{container!=""}, 1)
+            ) > 0.85
+          )
+        for: 15m
+        labels:
+          severity: critical
+          chatkit_route: page
+          chatkit_finops_alert: disk_log_volume
+        annotations:
+          summary: Persistent volume or container filesystem usage is critically high
+          description: |
+            A ChatKit PVC or container writable layer is above ~85% utilization (or PVC free space below 15%).
+            Includes convstore/Timescale data, ai_infra_data, and log-heavy mounts.
+
+      - alert: FinHubFinOpsConvstorePostgresSaturated
+        expr: |
+          (
+            sum(pg_stat_database_numbackends{datname="convstore"})
+            / clamp_min(pg_settings_max_connections, 1)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: critical
+          chatkit_route: page
+          chatkit_finops_alert: convstore_postgres_sat
+        annotations:
+          summary: convstore Postgres connection or disk pressure is high
+          description: |
+            Requires postgres_exporter (or kube-prometheus postgres targets) scraping the Timescale convstore DB.
+            When absent, this rule stays idle — use runbook health checks and `pg_stat_activity` manually.
+
+      - alert: FinHubFinOpsGatewayErrorBudgetBurn
+        expr: |
+          (
+            sum(rate(nginx_ingress_controller_requests{status=~"5..",ingress=~".*api-gateway.*"}[5m]))
+            /
+            clamp_min(sum(rate(nginx_ingress_controller_requests{ingress=~".*api-gateway.*"}[5m])), 0.001)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          chatkit_route: ticket
+          chatkit_finops_alert: gateway_error_budget
+        annotations:
+          summary: API gateway 5xx ratio above 5% (ticket)
+          description: |
+            Uses ingress-nginx controller metrics when present. Escalates via companion critical alert below.
+            Without ingress metrics, rely on blackbox/health probes in the adapter-probe alert group.
+
+      - alert: FinHubFinOpsGatewayErrorBudgetBurnCritical
+        expr: |
+          (
+            sum(rate(nginx_ingress_controller_requests{status=~"5..",ingress=~".*api-gateway.*"}[5m]))
+            /
+            clamp_min(sum(rate(nginx_ingress_controller_requests{ingress=~".*api-gateway.*"}[5m])), 0.001)
+          ) > 0.15
+        for: 5m
+        labels:
+          severity: critical
+          chatkit_route: page
+          chatkit_finops_alert: gateway_error_budget
+        annotations:
+          summary: API gateway 5xx ratio above 15% (page)
+          description: Severe gateway error budget burn — page on-call.
+
+  - name: chatkit.finops.fleet
+    rules:
+      - alert: FinHubFinOpsClawReadyBelowDesired
+        expr: |
+          (
+            kube_statefulset_status_replicas_ready{statefulset=~".*claw.*"}
+            /
+            clamp_min(kube_statefulset_status_replicas{statefulset=~".*claw.*"}, 1)
+          ) < 0.8
+        for: 15m
+        labels:
+          severity: warning
+          chatkit_route: ticket
+          chatkit_finops_alert: claw_ready_below_desired
+          chatkit_metrics_gap: claw_fleet_manager_desired_ready
+        annotations:
+          summary: Tenant claw StatefulSet ready replicas materially below desired (kube proxy)
+          description: |
+            Uses kube-state-metrics as a proxy until claw-fleet-manager exports
+            `claw_fleet_ready_replicas` / `claw_fleet_desired_replicas` (Phase 1+ gap).
+            Hermes/openclaw workloads use the same StatefulSet pattern when fleet-managed.
+
+      - alert: FinHubFinOpsAdapterProbeFailed
+        expr: |
+          (
+            up{job=~"chatkit-ai-infra-rs|chatkit-.*/ai-infra-rs"} == 0
+          )
+          or
+          (
+            probe_success{job=~"chatkit.*health.*", runtime_adapter=~"finclaw|hermes|openclaw"} == 0
+          )
+        for: 5m
+        labels:
+          severity: critical
+          chatkit_route: page
+          chatkit_finops_alert: adapter_probe_failed
+        annotations:
+          summary: Finclaw/Hermes/openclaw runtime probe failed or scrape target down
+          description: |
+            finclaw: expect `/metrics` or `/health` scrape via ServiceMonitor or dogfood static targets.
+            Hermes/openclaw: often health-only — wire blackbox `/health` probes; do not expect `/metrics` unless the adapter image enables Observer prometheus.
+
+      - alert: FinHubFinOpsCapabilityRegression
+        expr: |
+          (
+            min_over_time(loop_recovery_rate[30m]) < 0.6
+            and
+            max_over_time(loop_recovery_signals_total[30m]) > 10
+          )
+        for: 20m
+        labels:
+          severity: warning
+          chatkit_route: ticket
+          chatkit_finops_alert: capability_regression
+        annotations:
+          summary: Finclaw loop-quality indicators suggest capability regression (ticket)
+          description: |
+            Proxy using finclaw Observer gauges `loop_recovery_rate` and `loop_recovery_signals_total`
+            (exported from event name `loop.recovery.*`). Validate series names on `/metrics`.
+            Hermes adapters may not emit these gauges — treat as finclaw-first signal; use logs and
+            coding-capability matrix checks from the runbook for Hermes.
+
+      - alert: FinHubFinOpsReconcileStuck
+        expr: |
+          chatkit_claw_fleet_reconcile_stuck == 1
+        for: 10m
+        labels:
+          severity: warning
+          chatkit_route: ticket
+          chatkit_finops_alert: reconcile_stuck
+          chatkit_metrics_gap: claw_fleet_reconcile_lag
+        annotations:
+          summary: claw-fleet-manager reconcile appears stuck (metric stub)
+          description: |
+            Requires a future `chatkit_claw_fleet_reconcile_stuck` gauge from claw-fleet-manager
+            (reconcile lag / last-success timestamp). Until shipped, this alert does not fire.
+            Use runbook log checks (`replicas_reconciled`, `Replica reconcile loop failed`) immediately.
+
+  - name: chatkit.finops.compose
+    rules:
+      - alert: FinHubFinOpsComposeFinclawScrapeDown
+        expr: up{job="chatkit-ai-infra-rs", stack="compose"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          chatkit_route: page
+          chatkit_finops_alert: adapter_probe_failed
+        annotations:
+          summary: Compose dogfood finclaw Prometheus target is down
+          description: ai-infra-rs `/metrics` scrape failed in local observability profile.

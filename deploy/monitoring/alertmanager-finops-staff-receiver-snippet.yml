@@ -1,0 +1,33 @@
+# Example Alertmanager receiver routing finops-staff (Option A).
+# Mount bearer token via alertmanager secret file — same value as FINOPS_STAFF_ALERT_WEBHOOK_TOKEN.
+# Alertmanager sends Authorization: Bearer <token> when bearer_token_file is set.
+
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: finops-staff-readonly
+  group_by: ['alertname', 'chatkit_finops_alert']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+  routes:
+    - match:
+        chatkit_route: page
+      receiver: finops-staff-readonly
+    - match:
+        chatkit_route: ticket
+      receiver: finops-staff-readonly
+
+receivers:
+  - name: finops-staff-readonly
+    webhook_configs:
+      - url: http://<finops-staff-host>:26116/webhooks/alertmanager
+        send_resolved: true
+        http_config:
+          bearer_token_file: /etc/alertmanager/secrets/finops-alert-webhook.token
+
+inhibit_rules:
+  - source_matchers: [severity="critical"]
+    target_matchers: [severity="warning"]
+    equal: ['alertname', 'namespace']

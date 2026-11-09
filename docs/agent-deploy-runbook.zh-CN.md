@@ -16,6 +16,8 @@
 
 本地部署：除非公网注册需要 Cloudflare Turnstile，否则**不要**设置 `TURNSTILE_*`。见[环境变量参考](./operations/env-reference.zh-CN.md)。
 
+可选：Identity OAuth、finops-staff、监控（自建或复用 Prometheus 栈）、Turnstile、Slack — 均为 **opt-in**。监控接线见 [`docs/operations/monitoring.zh-CN.md`](./operations/monitoring.zh-CN.md)、[`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md)。
+
 ## 阶段 A — 发布包运行时（在 tarball 目录内）
 
 在发布根目录执行（通常含 `docker-compose.prod.yml` 与 `scripts/`）。

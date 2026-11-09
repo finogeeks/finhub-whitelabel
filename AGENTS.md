@@ -15,10 +15,12 @@ This repository is the **customer-facing** documentation and artifact template f
 | 2 | [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.md) | Full path: release unpack → env bootstrap → fleet → doctor → smoke |
 | 3 | [`docs/operations/install.md`](./docs/operations/install.md) | First-time install and first `fleet.sh up` |
 | 4 | [`docs/operations/env-reference.md`](./docs/operations/env-reference.md) | Auto-generated vs human-supplied `.env` keys |
-| 5 | [`docs/operations/finops-staff.md`](./docs/operations/finops-staff.md) | Optional supervised self-heal (off by default) |
-| 6 | [`docs/operations/finops-notifications.md`](./docs/operations/finops-notifications.md) | Alert notification channels |
-| 7 | [`docs/operations/day-2-ops.md`](./docs/operations/day-2-ops.md) | Upgrade, backup, logs, rotation, teardown |
-| 8 | [`docs/smoke-checklist.md`](./docs/smoke-checklist.md) | Post-deploy verification |
+| 5 | [`docs/operations/monitoring.md`](./docs/operations/monitoring.md) | Optional Prometheus / Alertmanager / Grafana (reuse or deploy) |
+| 6 | [`skills/finhub-monitoring/SKILL.md`](./skills/finhub-monitoring/SKILL.md) | Agent workflow: scrape, rules, Alertmanager → finops-staff |
+| 7 | [`docs/operations/finops-staff.md`](./docs/operations/finops-staff.md) | Optional supervised self-heal (off by default) |
+| 8 | [`docs/operations/finops-notifications.md`](./docs/operations/finops-notifications.md) | Alert notification channels |
+| 9 | [`docs/operations/day-2-ops.md`](./docs/operations/day-2-ops.md) | Upgrade, backup, logs, rotation, teardown |
+| 10 | [`docs/smoke-checklist.md`](./docs/smoke-checklist.md) | Post-deploy verification |
 
 Optional branding validation: [`skills/finhub-brand/SKILL.md`](./skills/finhub-brand/SKILL.md).
 
@@ -33,4 +35,4 @@ Optional branding validation: [`skills/finhub-brand/SKILL.md`](./skills/finhub-b
 
 ## Report back
 
-After a deploy assist, report: release version/sha, workdir, whether `init-env` → `gen-secrets` → `preflight` → `fleet up` → `doctor` ran, white-label overlay paths, finops profile (if any), and smoke checklist results — **names only** for secrets and license fields.
+After a deploy assist, report: release version/sha, workdir, whether `init-env` → `gen-secrets` → `preflight` → `fleet up` → `doctor` ran, white-label overlay paths, finops profile (if any), monitoring path A/B (if any), and smoke checklist results — **names only** for secrets and license fields.

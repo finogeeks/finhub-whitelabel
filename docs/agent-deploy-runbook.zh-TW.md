@@ -16,6 +16,8 @@
 
 地端部署：除非公開註冊需要 Cloudflare Turnstile，否則**不要**設定 `TURNSTILE_*`。見[環境變數參考](./operations/env-reference.zh-TW.md)。
 
+選用：Identity OAuth、finops-staff、監控（自建或重用 Prometheus 堆疊）、Turnstile、Slack — 均為 **opt-in**。監控接線見 [`docs/operations/monitoring.zh-TW.md`](./operations/monitoring.zh-TW.md)、[`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md)。
+
 ## 階段 A — 發佈套件執行環境（在 tarball 目錄內）
 
 在發佈根目錄執行（通常含 `docker-compose.prod.yml` 與 `scripts/`）。

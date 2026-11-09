@@ -114,6 +114,8 @@ curl -sS -X POST "https://<finops-host>:26116/webhooks/approval" \
 
 将 `FINOPS_STAFF_PROMETHEUS_URL` 设为集群内 Prometheus。compose 默认 `http://chatkit-prometheus-dogfood:9090` 仅用于供应商内部 dogfood——客户环境必须覆盖。
 
+**Alertmanager** 路由见 [监控](./monitoring.zh-CN.md)；示例配置见 [`deploy/monitoring/`](../../deploy/monitoring/)。
+
 ## 通知
 
 外呼可选：[finops-notifications](./finops-notifications.zh-CN.md)。通道失败隔离（诊断成功时仍返回 200）。
@@ -128,4 +130,5 @@ docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profil
 
 ## 相关
 
+- [监控](./monitoring.zh-CN.md) · [`skills/finhub-monitoring/SKILL.md`](../../skills/finhub-monitoring/SKILL.md)
 - [安装](./install.zh-CN.md) · [环境参考](./env-reference.zh-CN.md) · [日常运维](./day-2-ops.zh-CN.md)

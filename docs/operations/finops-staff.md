@@ -114,6 +114,8 @@ After uncommenting stub lines in `.env`, run `./scripts/gen-secrets.sh`:
 
 Set `FINOPS_STAFF_PROMETHEUS_URL` to your in-cluster Prometheus. The compose default `http://chatkit-prometheus-dogfood:9090` is for vendor dogfood only — override for customer stacks.
 
+Route **Alertmanager** to `POST /webhooks/alertmanager` with the alert token (see [Monitoring](./monitoring.md)). Example scrape snippets: [`deploy/monitoring/`](../../deploy/monitoring/).
+
 ## Notifications
 
 Optional outbound alerts: [finops-notifications](./finops-notifications.md). Failures are isolated (diagnose still returns 200 when successful).
@@ -128,4 +130,5 @@ Chat and core platform keep running.
 
 ## Related
 
+- [Monitoring](./monitoring.md) · [`skills/finhub-monitoring/SKILL.md`](../../skills/finhub-monitoring/SKILL.md)
 - [Install](./install.md) · [Environment reference](./env-reference.md) · [Day-2 ops](./day-2-ops.md)

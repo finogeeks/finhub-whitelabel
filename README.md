@@ -47,6 +47,7 @@ docs/
   operations/
     install.md                 # init-env → fleet → doctor
     env-reference.md           # auto-generated vs human-supplied secrets
+    monitoring.md              # optional Prometheus / Alertmanager / Grafana
     finops-staff.md            # optional supervised self-heal
     finops-notifications.md    # alert channels
     day-2-ops.md               # upgrade, backup, teardown
@@ -56,6 +57,7 @@ docs/
   brand-preview.md             # post-deploy screenshot comparison
 skills/
   finhub-deploy/SKILL.md       # primary agent entrypoint
+  finhub-monitoring/SKILL.md   # optional metrics + finops-staff wiring
   finhub-brand/SKILL.md        # brand validate + static login preview
 scripts/
   validate-artifacts.sh        # presence + JSON + branding validator
