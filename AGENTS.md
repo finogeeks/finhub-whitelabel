@@ -1,66 +1,36 @@
-# Coding agents: FinHub zero-to-running guide
+# AI agent guide (FinHub white-label + runtime)
 
-This public repository is a **white-label overlay** for FinHub. It does **not** ship application images, the full compose stack, or license material. A vendor **offline release tarball** is required before any server can start.
+This repository is the **customer-facing** documentation and artifact template for FinHub. Coding agents should follow the skills and runbooks here end to end. The offline **release tarball** (shipped by your vendor) contains application images, compose/Helm charts, and `scripts/` for environment bootstrap — not this repo.
 
-## Read first
+## Language
 
-| Order | Skill / doc | Purpose |
-|-------|-------------|---------|
-| 1 | [`skills/finhub-brand/SKILL.md`](skills/finhub-brand/SKILL.md) | Validate branding and persona artifacts **before** deploy (`./scripts/validate-artifacts.sh`, optional login preview). |
-| 2 | [`skills/finhub-deploy/SKILL.md`](skills/finhub-deploy/SKILL.md) | End-to-end runbook: obtain release → env/secrets → start stack → white-label overlays → smoke → optional OAuth / finops-staff. |
-| 3 | [`docs/smoke-checklist.md`](docs/smoke-checklist.md) | Post-deploy verification checklist. |
+- Operator docs exist in **English**, **Simplified Chinese** (`*.zh-CN.md`), and **Traditional Chinese** (`*.zh-TW.md`).
+- Keep **env var names**, **commands**, and **code** identical across languages.
 
-Human-readable summary of the same flow: [`docs/agent-deploy-runbook.md`](docs/agent-deploy-runbook.md).
+## Read order
 
-## What you need from the human operator
+| Step | Skill / doc | Purpose |
+|------|-------------|---------|
+| 1 | [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) | White-label overlays (branding, persona pack, optional OAuth) |
+| 2 | [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.md) | Full path: release unpack → env bootstrap → fleet → doctor → smoke |
+| 3 | [`docs/operations/install.md`](./docs/operations/install.md) | First-time install and first `fleet.sh up` |
+| 4 | [`docs/operations/env-reference.md`](./docs/operations/env-reference.md) | Auto-generated vs human-supplied `.env` keys |
+| 5 | [`docs/operations/finops-staff.md`](./docs/operations/finops-staff.md) | Optional supervised self-heal (off by default) |
+| 6 | [`docs/operations/finops-notifications.md`](./docs/operations/finops-notifications.md) | Alert notification channels |
+| 7 | [`docs/operations/day-2-ops.md`](./docs/operations/day-2-ops.md) | Upgrade, backup, logs, rotation, teardown |
+| 8 | [`docs/smoke-checklist.md`](./docs/smoke-checklist.md) | Post-deploy verification |
 
-- Offline release tarball **URL or file path** (and checksum/signature files when the vendor provides them).
-- **Deployment license** values from the vendor (`DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER` or names documented in the release `.env.example`). **Never invent license keys.**
-- **`LLM_API_KEY`** (or the name documented in the release `.env.example` for your LLM provider).
-- Target **public hostname** and TLS plan (or explicit HTTP-only lab mode if the release allows it).
-- Admin credentials for platform-settings seeding after the stack is up.
+Optional branding validation: [`skills/finhub-brand/SKILL.md`](./skills/finhub-brand/SKILL.md).
 
-## What the release tarball provides (not in this repo)
+## Hard rules (public repo)
 
-Typical **release bundles** include images (or load instructions), `docker-compose.prod.yml`, and scripts such as `init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh`, and `doctor.sh`. Canonical order when all are present:
+- **Never** commit or echo real secrets, license material, private hostnames, or internal repository URLs.
+- **Never** invent `DEPLOYMENT_LICENSE_KEY` / `DEPLOYMENT_LICENSE_CIPHER` — supplier only.
+- On-prem default: **zero external dependencies** (no Slack, no Turnstile) unless the operator opts in.
+- `finops-staff` is optional; stopping it does **not** stop chat. Compose and Helm both default **auto-act off** and **closed-loop off** (`FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`) unless overridden; do not enable unattended auto-act or closed-loop for customers.
+- Bootstrap/finops env semantics in this repo were verified at offline-release git `69ef8cd4` (no private repo links in customer docs).
+- If release README conflicts with this repo for **unpack/start** commands, follow the **release README** and report the conflict.
 
-1. `scripts/init-env.sh`
-2. `scripts/gen-secrets.sh`
-3. Operator sets `DEPLOYMENT_LICENSE_KEY`, `DEPLOYMENT_LICENSE_CIPHER`, and `LLM_API_KEY` in `.env`
-4. `scripts/preflight-env.sh`
-5. `scripts/fleet.sh up -d` (also runs preflight automatically)
-6. `scripts/doctor.sh`
+## Report back
 
-Exact names and layout are defined in the **bundled README** inside the tarball—follow that README when it disagrees with this repo for core stack bring-up.
-
-## Hard rules for agents
-
-- **No secrets in git or chat logs** — use host `.env` files or a vault; redact when reporting.
-- **OAuth** (`OAUTH_PROVIDER_ENABLED`) stays **false** unless the operator explicitly requests Identity OAuth.
-- **finops-staff** is **opt-in**; default deploy runs without it. When enabled, start in **readonly**; **supervised** mode and `FINOPS_STAFF_ALERT_PENDING_REPAIR` only if the operator explicitly chooses; **auto-act stays disabled**.
-- **Turnstile, Slack, and other outbound integrations** are opt-in; empty webhook URLs mean **no outbound calls**.
-- Phase 1 (release-only stack) must remain a valid path; white-label overlays are Phase 2.
-
-## Repository layout (agent-relevant)
-
-```
-skills/finhub-brand/SKILL.md    # Pre-deploy validation + preview
-skills/finhub-deploy/SKILL.md   # Primary deploy runbook
-branding/                       # Product chrome seed + assets
-persona-templates.json          # Starter persona pack (pin + replace sync)
-deploy/compose/                 # Compose override mounts
-deploy/helm/                    # Helm values + ConfigMap stubs
-deploy/oauth-provider.env.example
-docs/smoke-checklist.md
-docs/agent-deploy-runbook.md
-scripts/validate-artifacts.sh
-```
-
-## Success criteria
-
-1. Release stack healthy on the target host.
-2. White-label login shows fork branding and pruned persona pack.
-3. Smoke: sign-in, send a chat message, receive a **streamed** reply.
-4. `./scripts/validate-artifacts.sh` passes on the fork (run on the repo before or after overlay apply).
-
-Report blockers with service names from the release compose, not invented ports or image tags.
+After a deploy assist, report: release version/sha, workdir, whether `init-env` → `gen-secrets` → `preflight` → `fleet up` → `doctor` ran, white-label overlay paths, finops profile (if any), and smoke checklist results — **names only** for secrets and license fields.

@@ -54,4 +54,4 @@ Default deploy without `values-whitelabel.yaml` keeps upstream classic defaults 
 
 ## Optional finops-staff
 
-If the release Helm chart exposes `finopsStaff`, set `enabled: true` only when requested. Prefer `mode: readonly`; keep auto-act disabled unless the operator and release docs explicitly allow it. See commented keys in `values-whitelabel.yaml` and [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md).
+If the release Helm chart exposes `finopsStaff`, set `enabled: true` only when requested. Prefer `policyMode: readonly`. Current release charts default `autoActDisabled: true` and `closedLoopEnabled: false` and inject matching pod env unless overridden (same as compose finops-staff profile). See [`docs/operations/finops-staff.md`](../../docs/operations/finops-staff.md) and [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md).

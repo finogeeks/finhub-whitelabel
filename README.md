@@ -43,7 +43,13 @@ deploy/
   helm/                        # values + ConfigMap stubs
   oauth-provider.env.example   # opt-in OAuth only
 docs/
-  agent-deploy-runbook.md      # human-readable zero-to-running summary
+  agent-deploy-runbook.md      # zero-to-running (en / zh-CN / zh-TW)
+  operations/
+    install.md                 # init-env → fleet → doctor
+    env-reference.md           # auto-generated vs human-supplied secrets
+    finops-staff.md            # optional supervised self-heal
+    finops-notifications.md    # alert channels
+    day-2-ops.md               # upgrade, backup, teardown
   persona-pack-pin.md
   customize.md
   smoke-checklist.md
@@ -77,4 +83,4 @@ Persona **replace** uses `/app/bin/sync-platform-persona-templates` inside the *
 
 ## Support path
 
-Customize artifacts here → agent runs `skills/finhub-deploy` with your release URL → smoke checklist. OAuth and advanced embed RP wiring are opt-in ([`deploy/oauth-provider.env.example`](./deploy/oauth-provider.env.example)).
+Customize artifacts here → bootstrap env in the release tree ([`docs/operations/install.md`](./docs/operations/install.md)) → agent runs `skills/finhub-deploy` with your release URL → smoke checklist. Optional finops-staff alerting is off by default ([`docs/operations/finops-staff.md`](./docs/operations/finops-staff.md)). OAuth and advanced embed RP wiring are opt-in ([`deploy/oauth-provider.env.example`](./deploy/oauth-provider.env.example)).

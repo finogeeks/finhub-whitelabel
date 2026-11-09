@@ -27,12 +27,12 @@ ingress:
     - host: hub.example.com
       # paths: chart-specific
 
-# Optional finops-staff (release chart must define these keys — default off)
+# Optional finops-staff (release chart — default disabled; auto-act/closed-loop off unless overridden)
 # finopsStaff:
 #   enabled: false
-#   mode: readonly
-#   # supervised + FINOPS_STAFF_ALERT_PENDING_REPAIR only when operator opts in
-#   # autoAct: false
-#   # slackWebhookUrl: ""   # empty = no outbound Slack
+#   policyMode: readonly
+#   # autoActDisabled: true      # chart default → FINOPS_STAFF_AUTO_ACT_DISABLED=true
+#   # closedLoopEnabled: false   # chart default → FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
+#   # slackWebhookUrl: ""        # empty = no outbound Slack
 
 # Create ConfigMaps from this repo before first deploy — see deploy/helm/README.md
