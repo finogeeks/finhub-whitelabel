@@ -75,6 +75,7 @@
 |----------|--------|------|
 | `TURNSTILE_SECRET`、`TURNSTILE_HOSTNAMES`、`TURNSTILE_SITEKEY` | 是（密钥） | 公网注册 |
 | `FINOPS_STAFF_SLACK_WEBHOOK_URL` | 是 | Slack 通知 |
+| `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | 否 | 通知门槛：`info`、`warning` 或 `critical`（默认 `warning`；无效或空 → `warning`）— 见 [finops-notifications](./finops-notifications.zh-CN.md) |
 | 各通道 URL/密码 | 是 | 见 [finops-notifications](./finops-notifications.zh-CN.md) — 除上文 HMAC 外不由 gen-secrets 生成 |
 
 ## finops-staff 文档默认（客户姿态）
@@ -87,7 +88,7 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose 覆盖（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）与 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆盖否则始终写入 Pod env）均与上表一致。已在发布语义 `69ef8cd4` 核对。
+Compose 覆盖（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）与 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆盖否则始终写入 Pod env）均与上表一致。已在发布语义 `eaf6b93b` 核对。
 
 ## JWT 与许可证
 

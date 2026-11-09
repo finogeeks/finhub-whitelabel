@@ -23,7 +23,7 @@ helm upgrade --install <release> <chart-path> \
   --set finopsStaff.policyMode=readonly
 ```
 
-Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values + rendered env) both default **auto-act off** and **closed-loop off**: `FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false` unless the operator overrides them. Release behavior verified at `69ef8cd4`.
+Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values + rendered env) both default **auto-act off** and **closed-loop off**: `FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false` unless the operator overrides them. Release behavior verified at `eaf6b93b`.
 
 | Item | Value |
 |------|--------|
@@ -36,6 +36,17 @@ Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values
 | Doctor JSON | `GET /internal/doctor` |
 
 `INTERNAL_SERVICE_TOKEN` in `.env` authenticates finops-staff to claw-fleet-manager (see release `docker-compose.finops-staff.yml`).
+
+## Doctor snapshot (`GET /internal/doctor`)
+
+Read-only JSON (`finops-doctor/v1`) for posture checks after upgrades — not a substitute for release `scripts/doctor.sh`.
+
+| Field | Customer default | Meaning |
+|-------|------------------|---------|
+| `auto_act_disabled` | `true` | Automatic remediation acts stay off |
+| `closed_loop_enabled` | `false` | Closed-loop controller stays off |
+
+The snapshot also reports `notify_channels_configured`, `notify_channels_listed`, and `notify_startup_warnings`. Use it to confirm kill switches and notification wiring without enabling auto-act.
 
 ## Policy modes
 

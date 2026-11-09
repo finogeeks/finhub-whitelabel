@@ -75,6 +75,7 @@ Missing or invalid license → identity-service refuses to start.
 |----------|--------|------|
 | `TURNSTILE_SECRET`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_SITEKEY` | Yes (secret) | Internet-facing registration |
 | `FINOPS_STAFF_SLACK_WEBHOOK_URL` | Yes | Slack notifications |
+| `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | No | Notify floor: `info`, `warning`, or `critical` (default `warning`; invalid or empty → `warning`) — see [finops-notifications](./finops-notifications.md) |
 | Channel URLs/passwords | Yes | See [finops-notifications](./finops-notifications.md) — **not** minted by gen-secrets except optional HMAC secret above |
 
 ## finops-staff documented defaults (customer posture)
@@ -87,7 +88,7 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose overlay (`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`) and Helm (`finopsStaff.autoActDisabled: true`, `finopsStaff.closedLoopEnabled: false`, always rendered into the pod unless overridden) match the table above. Verified at release semantics `69ef8cd4`.
+Compose overlay (`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`) and Helm (`finopsStaff.autoActDisabled: true`, `finopsStaff.closedLoopEnabled: false`, always rendered into the pod unless overridden) match the table above. Verified at release semantics `eaf6b93b`.
 
 ## JWT and license
 
