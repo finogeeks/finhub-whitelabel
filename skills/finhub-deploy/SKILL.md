@@ -317,6 +317,8 @@ The finops-staff service may appear in the **release bundle** as an optional com
 
 Before enabling the profile or chart: uncomment `FINOPS_STAFF_*` stubs in `.env.example` **§11**, run `./scripts/gen-secrets.sh` again, then set operating mode per operator choice below.
 
+For Prometheus / Alertmanager / Grafana (reuse or `observability` profile) and Alertmanager → finops-staff webhooks, follow [`finhub-monitoring`](../finhub-monitoring/SKILL.md) and [`docs/operations/monitoring.md`](../../docs/operations/monitoring.md).
+
 ### Compose (when profile exists in release)
 
 ```bash

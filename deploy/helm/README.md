@@ -55,3 +55,5 @@ Default deploy without `values-whitelabel.yaml` keeps upstream classic defaults 
 ## Optional finops-staff
 
 If the release Helm chart exposes `finopsStaff`, set `enabled: true` only when requested. Prefer `policyMode: readonly`. Current release charts default `autoActDisabled: true` and `closedLoopEnabled: false` and inject matching pod env unless overridden (same as compose finops-staff profile). See [`docs/operations/finops-staff.md`](../../docs/operations/finops-staff.md) and [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md).
+
+The FinHub chart does not install Prometheus or Grafana; optional `ServiceMonitor` / `PrometheusRule` CRs are documented in [`docs/operations/monitoring.md`](../../docs/operations/monitoring.md).
