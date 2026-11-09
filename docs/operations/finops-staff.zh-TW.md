@@ -23,7 +23,7 @@ helm upgrade --install <release> <chart-path> \
   --set finopsStaff.policyMode=readonly
 ```
 
-請顯式設定 `finopsStaff.autoActDisabled=true`、`finopsStaff.closedLoopEnabled=false`，與 compose 預設一致（chart 預設可能不同）。
+Compose（`docker-compose.finops-staff.yml`）與 Helm（`finopsStaff` 值及渲染後的 env）均預設**關閉 auto-act**與**關閉 closed-loop**：`FINOPS_STAFF_AUTO_ACT_DISABLED=true`、`FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`（除非維運覆寫）。發佈套件行為已在 `69ef8cd4` 核對。
 
 | 項 | 值 |
 |------|--------|

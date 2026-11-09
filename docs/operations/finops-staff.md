@@ -23,7 +23,7 @@ helm upgrade --install <release> <chart-path> \
   --set finopsStaff.policyMode=readonly
 ```
 
-Set `finopsStaff.autoActDisabled=true` and `finopsStaff.closedLoopEnabled=false` explicitly so they match compose defaults (chart defaults may differ).
+Compose (`docker-compose.finops-staff.yml`) and Helm (`finopsStaff` chart values + rendered env) both default **auto-act off** and **closed-loop off**: `FINOPS_STAFF_AUTO_ACT_DISABLED=true`, `FINOPS_STAFF_CLOSED_LOOP_ENABLED=false` unless the operator overrides them. Release behavior verified at `69ef8cd4`.
 
 | Item | Value |
 |------|--------|

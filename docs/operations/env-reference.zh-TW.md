@@ -87,7 +87,7 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose 覆寫預設值一致。Helm chart 預設可能不同——請顯式設定 env/values 與上表一致。
+Compose 覆寫（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）與 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆寫否則始終寫入 Pod env）均與上表一致。已在發佈語意 `69ef8cd4` 核對。
 
 ## JWT 與授權
 

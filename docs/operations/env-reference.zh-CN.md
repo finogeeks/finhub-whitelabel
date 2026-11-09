@@ -87,7 +87,7 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose 覆盖默认值一致。Helm chart 默认可能不同——请显式设置 env/values 与上表一致。
+Compose 覆盖（`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`）与 Helm（`finopsStaff.autoActDisabled: true`、`finopsStaff.closedLoopEnabled: false`，除非覆盖否则始终写入 Pod env）均与上表一致。已在发布语义 `69ef8cd4` 核对。
 
 ## JWT 与许可证
 

@@ -87,7 +87,7 @@ FINOPS_STAFF_AUTO_ACT_DISABLED=true
 FINOPS_STAFF_CLOSED_LOOP_ENABLED=false
 ```
 
-Compose overlay defaults match. Helm chart may ship different chart defaults — set explicit env/values to match the table above.
+Compose overlay (`${FINOPS_STAFF_AUTO_ACT_DISABLED:-true}` / `${FINOPS_STAFF_CLOSED_LOOP_ENABLED:-false}`) and Helm (`finopsStaff.autoActDisabled: true`, `finopsStaff.closedLoopEnabled: false`, always rendered into the pod unless overridden) match the table above. Verified at release semantics `69ef8cd4`.
 
 ## JWT and license
 
