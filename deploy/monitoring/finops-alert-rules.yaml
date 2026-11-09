@@ -7,7 +7,7 @@
 #
 # Several expressions assume cluster-level series (kubelet, kube-state-metrics,
 # postgres_exporter). Compose dogfood only evaluates finclaw `up` / Observer
-# series unless you add matching scrape jobs. See docs/operations/observability.md.
+# series unless you add matching scrape jobs. See docs/operations/monitoring.md.
 
 groups:
   - name: chatkit.finops.platform
