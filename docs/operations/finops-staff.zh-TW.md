@@ -23,7 +23,7 @@ helm upgrade --install <release> <chart-path> \
   --set finopsStaff.policyMode=readonly
 ```
 
-Compose（`docker-compose.finops-staff.yml`）與 Helm（`finopsStaff` 值及渲染後的 env）均預設**關閉 auto-act**與**關閉 closed-loop**：`FINOPS_STAFF_AUTO_ACT_DISABLED=true`、`FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`（除非維運覆寫）。發佈套件行為已在 `69ef8cd4` 核對。
+Compose（`docker-compose.finops-staff.yml`）與 Helm（`finopsStaff` 值及渲染後的 env）均預設**關閉 auto-act**與**關閉 closed-loop**：`FINOPS_STAFF_AUTO_ACT_DISABLED=true`、`FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`（除非維運覆寫）。發佈套件行為已在 `eaf6b93b` 核對。
 
 | 項 | 值 |
 |------|--------|
@@ -36,6 +36,17 @@ Compose（`docker-compose.finops-staff.yml`）與 Helm（`finopsStaff` 值及渲
 | Doctor JSON | `GET /internal/doctor` |
 
 `.env` 中的 `INTERNAL_SERVICE_TOKEN` 供 finops-staff 存取 claw-fleet-manager（見發佈套件 `docker-compose.finops-staff.yml`）。
+
+## Doctor 快照（`GET /internal/doctor`）
+
+唯讀 JSON（`finops-doctor/v1`），用於升級後姿態核對 — 不能取代發佈套件 `scripts/doctor.sh`。
+
+| 欄位 | 客戶預設 | 含義 |
+|------|----------|------|
+| `auto_act_disabled` | `true` | 自動修復動作保持關閉 |
+| `closed_loop_enabled` | `false` | 閉環控制器保持關閉 |
+
+另含 `notify_channels_configured`、`notify_channels_listed` 與 `notify_startup_warnings`。可在不啟用 auto-act 的情況下確認斷路開關與通知配置。
 
 ## 策略模式
 

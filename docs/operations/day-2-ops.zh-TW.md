@@ -78,10 +78,10 @@ docker volume ls | grep chatkit   # 清理前確認
 | Claw 長期 `starting` | `doctor.sh`；依發佈說明調 `CLAW_FLEET_MANAGER_*` 逾時 |
 | LLM 錯誤 | `LLM_API_KEY`、`LLM_BASE_URL`、模型名 |
 | finops Webhook 401 | Alertmanager Bearer 與 `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` 一致 |
-| 無通知 | `FINOPS_STAFF_NOTIFY_CHANNELS` 列出通道但 URL 為空 → 啟動警告 |
+| 無通知 | `FINOPS_STAFF_NOTIFY_CHANNELS` 列出通道但 URL 為空 → 啟動警告；或告警 `severity` 低於 `FINOPS_STAFF_NOTIFY_MIN_SEVERITY`（預設 `warning`）— 診斷成功、略過通知 |
 | 生產誤用略過預檢 | 移除 `FLEET_SKIP_PREFLIGHT`；使用真實授權與 preflight |
 
-啟用 finops 時：`GET http://<host>:26116/internal/doctor`。
+啟用 finops-staff 時，以 `GET http://<host>:26116/internal/doctor`（認證方式見發佈套件說明）核對姿態。客戶環境應看到 `auto_act_disabled: true`、`closed_loop_enabled: false`，以及與 `.env` 一致的通知通道清單。
 
 ## 相關
 

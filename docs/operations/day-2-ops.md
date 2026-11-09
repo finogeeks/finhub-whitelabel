@@ -79,10 +79,10 @@ Document license return/decommission per your vendor contract.
 | Claws stuck `starting` | `doctor.sh`; tune `CLAW_FLEET_MANAGER_*` timeouts in `.env` per release |
 | LLM errors | `LLM_API_KEY`, `LLM_BASE_URL`, model name |
 | finops webhook 401 | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` matches Alertmanager bearer |
-| Notification missing | Channel listed in `FINOPS_STAFF_NOTIFY_CHANNELS` but URL empty → startup warning |
+| Notification missing | Channel listed in `FINOPS_STAFF_NOTIFY_CHANNELS` but URL empty → startup warning; or alert `severity` below `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` (default `warning`) — diagnose succeeds, notify skipped |
 | Bypassed preflight in prod | Remove `FLEET_SKIP_PREFLIGHT`; run real license + preflight |
 
-Internal JSON health for finops: `GET http://<host>:26116/internal/doctor` when the service is enabled.
+When finops-staff is enabled, verify posture with `GET http://<host>:26116/internal/doctor` (authenticated per release docs). Expect `auto_act_disabled: true` and `closed_loop_enabled: false` on customer stacks, plus notify channel lists matching your `.env`.
 
 ## Related
 

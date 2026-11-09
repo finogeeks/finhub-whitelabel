@@ -11,6 +11,8 @@ Outbound notifications are **opt-in**. With no channels configured, finops-staff
 - A channel failure is logged only; it does **not** fail alert diagnosis (`POST /webhooks/alertmanager` stays `200` when diagnose succeeds).
 - Payload schema: `finops-incident-notify/v1` (generic webhook posts this JSON as-is).
 - HTTP timeout per channel: `FINOPS_STAFF_NOTIFY_TIMEOUT_MS` (default `10000`).
+- **Severity floor:** `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` (default `warning`). Alerts whose Prometheus/Alertmanager `severity` label ranks **below** the floor are still diagnosed but **not** pushed to notify channels. Accepted values: `info`, `warning`, `critical` (case-insensitive). Unknown or empty values fall back to `warning`. Ordering: `info` < `warning` < `critical` — so **info alerts are not notified by default**.
+- **Titles:** every channel uses the shared `title` string, which includes a `FIRING:` or `RESOLVED:` prefix from the Alertmanager alert status (for example `[FinOps staff — readonly] FIRING: HighCPU (warning)`).
 
 ## Enable channels
 
@@ -23,6 +25,17 @@ FINOPS_STAFF_NOTIFY_CHANNELS=slack,feishu,email,generic
 **Legacy behavior:** if `FINOPS_STAFF_NOTIFY_CHANNELS` is unset, Slack still sends when `FINOPS_STAFF_SLACK_WEBHOOK_URL` is set; otherwise no outbound.
 
 Listed channels without required env → doctor/startup **warning**; that channel is skipped.
+
+### finops-incident-notify/v1 fields (all channels)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `schema_version` | string | Always `finops-incident-notify/v1` |
+| `title` | string | Subject line with `FIRING:` or `RESOLVED:` prefix |
+| `alert_delivery_status` | string | `firing` or `resolved` (from Alertmanager alert `status`) |
+| `alertname`, `severity`, `policy_mode`, … | — | Diagnosis card metadata (see generic webhook body) |
+
+The generic JSON webhook POSTs the full object above. Slack, Feishu, email, DingTalk, and WeCom render from the same `title` and `alert_delivery_status` fields.
 
 ## Slack
 

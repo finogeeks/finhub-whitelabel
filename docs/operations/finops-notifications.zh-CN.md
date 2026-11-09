@@ -11,6 +11,8 @@
 - 单通道失败仅记日志；**不会**导致诊断失败（诊断成功时 `POST /webhooks/alertmanager` 仍为 `200`）。
 - 负载 schema：`finops-incident-notify/v1`（通用 Webhook 原样 POST 该 JSON）。
 - 每通道 HTTP 超时：`FINOPS_STAFF_NOTIFY_TIMEOUT_MS`（默认 `10000`）。
+- **严重级别门槛：** `FINOPS_STAFF_NOTIFY_MIN_SEVERITY`（默认 `warning`）。Prometheus/Alertmanager `severity` 标签**低于**门槛的告警仍会诊断，但**不会**外呼。合法取值：`info`、`warning`、`critical`（不区分大小写）。未知或空值回退为 `warning`。排序：`info` < `warning` < `critical` — 故 **info 告警默认不通知**。
+- **标题：** 各通道共用 `title` 字符串，含 Alertmanager 告警状态对应的 `FIRING:` 或 `RESOLVED:` 前缀（例如 `[FinOps staff — readonly] FIRING: HighCPU (warning)`）。
 
 ## 启用通道
 
@@ -23,6 +25,17 @@ FINOPS_STAFF_NOTIFY_CHANNELS=slack,feishu,email,generic
 **兼容行为：** 未设置 `FINOPS_STAFF_NOTIFY_CHANNELS` 时，仅当配置了 `FINOPS_STAFF_SLACK_WEBHOOK_URL` 仍发 Slack；否则无外呼。
 
 列表中的通道若缺少必填 env → 启动/doctor **警告**，跳过该通道。
+
+### finops-incident-notify/v1 字段（全部通道）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `schema_version` | string | 固定 `finops-incident-notify/v1` |
+| `title` | string | 主题行，含 `FIRING:` 或 `RESOLVED:` 前缀 |
+| `alert_delivery_status` | string | `firing` 或 `resolved`（来自 Alertmanager 告警 `status`） |
+| `alertname`、`severity`、`policy_mode` 等 | — | 诊断卡片元数据（见通用 Webhook 正文） |
+
+通用 JSON Webhook 原样 POST 上表完整对象。Slack、飞书、邮件、钉钉、企业微信均基于同一 `title` 与 `alert_delivery_status` 渲染。
 
 ## Slack
 
