@@ -19,11 +19,14 @@ docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profil
 
 ```bash
 helm upgrade --install <release> <chart-path> \
+  -f deploy/helm/values-whitelabel.yaml \
+  -f <release-chart>/values-finops-staff-auth.example.yaml \
   --set finopsStaff.enabled=true \
-  --set finopsStaff.policyMode=readonly
+  --set finopsStaff.policyMode=readonly \
+  --set finopsStaff.existingSecret=finops-staff-auth
 ```
 
-Compose（`docker-compose.finops-staff.yml`）与 Helm（`finopsStaff` 值及渲染后的 env）均默认**关闭 auto-act**与**关闭 closed-loop**：`FINOPS_STAFF_AUTO_ACT_DISABLED=true`、`FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`（除非运维覆盖）。发布包行为已在 `eaf6b93b` 核对。
+Compose（`docker-compose.finops-staff.yml`）与 Helm（`finopsStaff` 值及渲染后的 env）均默认**关闭 auto-act**与**关闭 closed-loop**：`FINOPS_STAFF_AUTO_ACT_DISABLED=true`、`FINOPS_STAFF_CLOSED_LOOP_ENABLED=false`（除非运维覆盖）。发布包行为已在 `cb3e6418` 核对。
 
 | 项 | 值 |
 |------|--------|
@@ -109,6 +112,34 @@ curl -sS -X POST "https://<finops-host>:26116/webhooks/approval" \
 | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` | Alertmanager |
 | `FINOPS_STAFF_INTERNAL_API_TOKEN` | `POST /internal/*`（health 仍公开） |
 | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` | 可选审批 Webhook 门控 |
+
+## Helm 认证密钥
+
+生产：在集群中创建 Secret（勿写入 git），再在发布 Chart 中引用。
+
+```bash
+kubectl create secret generic finops-staff-auth \
+  --from-literal=alert_webhook_token=<alert-webhook-token> \
+  --from-literal=internal_api_token=<internal-api-token> \
+  --from-literal=approval_webhook_token=<approval-webhook-token> \
+  -n <namespace>
+```
+
+| Helm 值 | 默认 | 对应 Pod 环境变量 |
+|---------|------|-------------------|
+| `finopsStaff.existingSecret` | `""` | 存放认证键的 Secret 名称（生产推荐） |
+| `finopsStaff.secretKeys.alertWebhookToken` | `alert_webhook_token` | `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` |
+| `finopsStaff.secretKeys.internalApiToken` | `internal_api_token` | `FINOPS_STAFF_INTERNAL_API_TOKEN` |
+| `finopsStaff.secretKeys.approvalWebhookToken` | `approval_webhook_token` | `FINOPS_STAFF_APPROVAL_WEBHOOK_TOKEN` |
+| `finopsStaff.createSecret.enabled` | `false` | **仅开发/实验室** — `true` 且未设置 `existingSecret` 时由 Chart 渲染 Secret；`createSecret.*` 使用占位符如 `<alert-webhook-token>` |
+| `finopsStaff.notifyMinSeverity` | `warning` | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY`：`info`、`warning` 或 `critical` |
+
+本仓库示例（路径相对于发行包 Chart 目录）：
+
+- [`deploy/helm/values-finops-staff-auth.example.yaml`](../../deploy/helm/values-finops-staff-auth.example.yaml)
+- [`deploy/helm/values-alertmanager-finops.example.yaml`](../../deploy/helm/values-alertmanager-finops.example.yaml) — Alertmanager 对 finops-staff 使用 `bearer_token_file`，勿在配置中写内联 `bearer_token`
+
+**Alertmanager：** 将同一 `alert_webhook_token` 挂载到 Alertmanager（如 kube-prometheus-stack 的 `alertmanager.extraSecretMounts`），路径与接收器中的 `bearer_token_file` 一致。可合并 [`deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml`](../../deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml)。
 
 ## Prometheus
 

@@ -6,7 +6,7 @@ FinHub **无需**监控栈即可运行。Prometheus、Alertmanager、Grafana 为
 
 启用 **finops-staff** 时（见 [FinOps 辅助服务](./finops-staff.zh-CN.md)），服务会**读取** Prometheus 并**接收** Alertmanager Webhook，不替代您现有的监控平台。
 
-本指南与供应商发行版提交 `64baa121` 的布局一致。完整文件在**离线发行包**中；本仓库仅提供 [示例片段](../../deploy/monitoring/)。
+本指南与供应商发行版提交 `cb3e6418` 的布局一致。完整文件在**离线发行包**中；本仓库仅提供 [示例片段](../../deploy/monitoring/)。
 
 ## 架构要点
 
@@ -47,7 +47,6 @@ Kubernetes：可选 `ServiceMonitor`、`PrometheusRule`；Pod 注解 `prometheus
 | `FinHubFinOpsClawReadyBelowDesired` | warning | ticket | StatefulSet 就绪副本不足 |
 | `FinHubFinOpsAdapterProbeFailed` | critical | page | 适配器探针/采集失败 |
 | `FinHubFinOpsCapabilityRegression` | warning | ticket | finclaw 循环质量回归信号 |
-| `FinHubFinOpsReconcileStuck` | warning | ticket | **占位**（指标未实现，规则不触发） |
 | `FinHubFinOpsComposeFinclawScrapeDown` | critical | page | Compose：finclaw 采集目标 down |
 
 ## 选项 A — 复用现有监控
@@ -57,7 +56,7 @@ Kubernetes：可选 `ServiceMonitor`、`PrometheusRule`；Pod 注解 `prometheus
 3. Webhook：`POST http://<finops-staff>:26116/webhooks/alertmanager`；认证为 `Authorization: Bearer …` 或头 `x-finops-alert-webhook-token`。
 4. Grafana：配置 Prometheus 数据源，可导入 [grafana-finops-compose-dogfood.json](../../deploy/monitoring/grafana-finops-compose-dogfood.json)。
 
-**Helm：** FinHub Chart **不部署** Prometheus/Alertmanager/Grafana；可渲染 `PrometheusRule`、`ServiceMonitor`（需 Prometheus Operator）。**不**包含 `PodMonitor`、`AlertmanagerConfig`、Grafana。`finopsStaff` 默认 `prometheusUrl: http://prometheus-operated:9090`；Chart **未**模板化 `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN`，需站点 Secret 注入。
+**Helm：** FinHub Chart **不部署** Prometheus/Alertmanager/Grafana；可渲染 `PrometheusRule`、`ServiceMonitor`（需 Prometheus Operator）。**不**包含 `PodMonitor`、`AlertmanagerConfig`、Grafana。`finopsStaff` 默认 `policyMode: readonly`、`autoActDisabled: true`、`closedLoopEnabled: false`、`notifyMinSeverity: warning`。生产环境通过 `finopsStaff.existingSecret` + `secretKeys` 注入告警/内部 API/审批令牌；Alertmanager 使用 `bearer_token_file` 挂载同一 Secret 的 `alert_webhook_token` 键。详见 [finops-staff — Helm 认证](./finops-staff.zh-CN.md#helm-认证密钥) 与 [deploy/helm/README.zh-CN.md](../../deploy/helm/README.zh-CN.md)。
 
 ## 选项 B — 部署 observability 配置
 
@@ -75,7 +74,7 @@ docker compose -f docker-compose.prod.yml \
 
 ## 生产加固（已知差距）
 
-发行版标明 **狗食**。要点：postgres-exporter DSN 内含凭据、Prometheus 无持久卷、Prom/AM 无 TLS/认证、单副本、Grafana 管理员口令、未认证的 `/metrics`、Compose 上大量规则处于 idle、Helm 未挂载告警 Webhook Token、`FinHubFinOpsReconcileStuck` 无对应指标。生产优先选 **选项 A** 在企业监控上落地。
+发行版标明 **狗食**。要点：postgres-exporter DSN 内含凭据、Prometheus 无持久卷、Prom/AM 无 TLS/认证、单副本、Grafana 管理员口令、未认证的 `/metrics`、Compose 上大量规则处于 idle、Alertmanager 与 finops-staff 令牌文件不一致会导致 Webhook 401。生产优先选 **选项 A** 在企业监控上落地。
 
 ## 相关
 

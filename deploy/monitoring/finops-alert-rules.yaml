@@ -151,22 +151,6 @@ groups:
             Hermes adapters may not emit these gauges — treat as finclaw-first signal; use logs and
             coding-capability matrix checks from the runbook for Hermes.
 
-      - alert: FinHubFinOpsReconcileStuck
-        expr: |
-          chatkit_claw_fleet_reconcile_stuck == 1
-        for: 10m
-        labels:
-          severity: warning
-          chatkit_route: ticket
-          chatkit_finops_alert: reconcile_stuck
-          chatkit_metrics_gap: claw_fleet_reconcile_lag
-        annotations:
-          summary: claw-fleet-manager reconcile appears stuck (metric stub)
-          description: |
-            Requires a future `chatkit_claw_fleet_reconcile_stuck` gauge from claw-fleet-manager
-            (reconcile lag / last-success timestamp). Until shipped, this alert does not fire.
-            Use runbook log checks (`replicas_reconciled`, `Replica reconcile loop failed`) immediately.
-
   - name: chatkit.finops.compose
     rules:
       - alert: FinHubFinOpsComposeFinclawScrapeDown

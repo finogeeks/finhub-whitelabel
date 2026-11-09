@@ -54,7 +54,7 @@ Read [`docs/operations/monitoring.md`](../../docs/operations/monitoring.md) sect
 2. **Observer** — Confirm `AI_INFRA_RS_OBSERVER_BACKEND` includes `prometheus` on claws (release default often `log,prometheus`).
 3. **Rules** — Import [`deploy/monitoring/finops-alert-rules.yaml`](../../deploy/monitoring/finops-alert-rules.yaml) or release copy; reload Prometheus.
 4. **Alertmanager** — Merge [`deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml`](../../deploy/monitoring/alertmanager-finops-staff-receiver-snippet.yml) when finops-staff enabled; `bearer_token_file` must match `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN`.
-5. **Helm (K8s only)** — If using Prometheus Operator: `observability.alerts.prometheusRule.enabled`, optional `serviceMonitor.enabled`; **do not** expect FinHub chart to install Prometheus. Set `finopsStaff.prometheusUrl` to operator Prometheus URL.
+5. **Helm (K8s only)** — If using Prometheus Operator: `observability.alerts.prometheusRule.enabled`, optional `serviceMonitor.enabled`; **do not** expect FinHub chart to install Prometheus. Set `finopsStaff.prometheusUrl` to operator Prometheus URL. Wire auth via `finopsStaff.existingSecret` + `secretKeys` (see [`deploy/helm/values-finops-staff-auth.example.yaml`](../../deploy/helm/values-finops-staff-auth.example.yaml)); Alertmanager `bearer_token_file` from the same Secret ([`values-alertmanager-finops.example.yaml`](../../deploy/helm/values-alertmanager-finops.example.yaml)).
 6. **Grafana** — Optional import [`grafana-finops-compose-dogfood.json`](../../deploy/monitoring/grafana-finops-compose-dogfood.json).
 
 Operator confirmation before applying configs to production servers.
@@ -72,8 +72,8 @@ Follow [`docs/operations/finops-staff.md`](../../docs/operations/finops-staff.md
 
 1. Uncomment `FINOPS_STAFF_*` in `.env.example` §11 → `./scripts/gen-secrets.sh`.
 2. Set `FINOPS_STAFF_PROMETHEUS_URL` to **customer** Prometheus (not dogfood hostname on prod).
-3. Enable compose profile or `finopsStaff.enabled=true`.
-4. Inject `FINOPS_STAFF_ALERT_WEBHOOK_TOKEN` on Kubernetes if Helm template omits it.
+3. Enable compose profile or `finopsStaff.enabled=true` with `policyMode=readonly`, `autoActDisabled=true`, `closedLoopEnabled=false`.
+4. Kubernetes: create auth Secret and set `finopsStaff.existingSecret` (dev-only: `createSecret.enabled`); mount matching `bearer_token_file` on Alertmanager — do not use inline tokens in git.
 
 ## Phase 4 — Verify
 
@@ -98,7 +98,7 @@ Template:
 - finops-staff: enabled or skipped; policy mode
 - Targets up / rules loaded: yes/no
 - Alertmanager → staff: verified or blocked reason
-- Gaps acknowledged (dogfood hardening, idle rules on compose, helm webhook token overlay)
+- Gaps acknowledged (dogfood hardening, idle rules on compose, Alertmanager ↔ staff token mount)
 - Unverified claims called out explicitly
 
 ## Troubleshooting
