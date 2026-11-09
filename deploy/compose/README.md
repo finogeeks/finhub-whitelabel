@@ -56,3 +56,13 @@ docker compose -f docker-compose.prod.yml \
 ```
 
 Do not add this override on a default (non-white-label) compose unless you intend to pin your pack and branding files.
+
+## Optional finops-staff (release only)
+
+When your offline release defines a `finops-staff` compose profile, enable it **only** if the operator asked:
+
+```bash
+docker compose -f docker-compose.prod.yml --profile finops-staff up -d
+```
+
+Start in **readonly**; supervised repair alerts and Slack webhooks are opt-in (empty webhook = no outbound calls). See [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md).

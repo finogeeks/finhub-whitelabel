@@ -12,9 +12,11 @@ Public template for forking or cloning when you deploy your own **FinHub** insta
 
 **FinHub** is the customer-facing product name. Upstream offline releases may still use `chatkit` in image or compose names — that is expected.
 
+**Coding agents** — start at [`AGENTS.md`](./AGENTS.md) (skill order, tarball dependency, secret rules). Human-readable deploy flow: [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.md).
+
 ## Quick start
 
-1. **Prereqs** — Docker Engine + Compose v2 (or Kubernetes + Helm); an offline FinHub/chatkit release tarball URL from your vendor; admin credentials for platform-settings seeding when the stack is up.
+1. **Prereqs** — Docker Engine + Compose v2 (or Kubernetes + Helm); an offline FinHub/chatkit release tarball URL from your vendor; deployment license + LLM keys per release `.env.example`; admin credentials for platform-settings seeding when the stack is up.
 2. **Clone** — `git clone https://github.com/finogeeks/finhub-whitelabel` (or use this repo as a GitHub template).
 3. **Customize** — see [`docs/customize.md`](./docs/customize.md).
    - Product copy + auth chrome → [`branding/platform-settings.json`](./branding/platform-settings.json)
@@ -22,13 +24,14 @@ Public template for forking or cloning when you deploy your own **FinHub** insta
    - Persona starter pack → [`persona-templates.json`](./persona-templates.json)
    - Host / TLS → [`deploy/compose/`](./deploy/compose/) or [`deploy/helm/`](./deploy/helm/)
 4. **Validate & preview** — `./scripts/validate-artifacts.sh` (no network); optional brand preview via [`skills/finhub-brand/SKILL.md`](./skills/finhub-brand/SKILL.md).
-5. **Deploy** — give an agent the release URL, path to this fork, and credentials. Load [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) and follow Phase 1 → Phase 2 (Phase 1.5 OAuth only if you need it).
-6. **Smoke** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.md).
+5. **Deploy** — give an agent the release URL, path to this fork, and credentials. Load [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md): tarball verify → `init-env.sh` → `gen-secrets.sh` → license + `LLM_API_KEY` → `preflight-env.sh` → `fleet.sh up -d` → `doctor.sh` (from the **release bundle** when present) → Phase 2 overlays (Phase 1.5 OAuth or finops-staff only if you need them).
+6. **Smoke** — [`docs/smoke-checklist.md`](./docs/smoke-checklist.md) (include login, chat, streamed reply).
 
 ## Repository layout
 
 ```
 README.md
+AGENTS.md                      # coding agent entry (skills + tarball dependency)
 branding/
   platform-settings.json       # Option B auth / product chrome seed
   theme-tokens.json            # design SoT only (_consumed_by_chatkit: false)
@@ -40,6 +43,7 @@ deploy/
   helm/                        # values + ConfigMap stubs
   oauth-provider.env.example   # opt-in OAuth only
 docs/
+  agent-deploy-runbook.md      # human-readable zero-to-running summary
   persona-pack-pin.md
   customize.md
   smoke-checklist.md
@@ -69,6 +73,7 @@ Persona **replace** uses `/app/bin/sync-platform-persona-templates` inside the *
 - No FinHub-named patches inside chatkit-web or chatkit-middleware
 - No required `finhub.finaios.ai` host defaults in deploy config
 - No application source — seeds, mounts, and deploy overlays only
+- No offline release images or bundle scripts (`init-env.sh`, `gen-secrets.sh`, `preflight-env.sh`, `fleet.sh`, `doctor.sh`) — those ship in the vendor tarball (see [`AGENTS.md`](./AGENTS.md))
 
 ## Support path
 

@@ -51,3 +51,7 @@ Re-run without `extraArgs` to apply `replace_platform`.
 After deploy, seed via admin **PUT** with `branding/platform-settings.json`, or run your site-specific Job that reads ConfigMap `wl-platform-settings`.
 
 Default deploy without `values-whitelabel.yaml` keeps upstream classic defaults — no white-label pin.
+
+## Optional finops-staff
+
+If the release Helm chart exposes `finopsStaff`, set `enabled: true` only when requested. Prefer `mode: readonly`; keep auto-act disabled unless the operator and release docs explicitly allow it. See commented keys in `values-whitelabel.yaml` and [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md).

@@ -27,4 +27,12 @@ ingress:
     - host: hub.example.com
       # paths: chart-specific
 
+# Optional finops-staff (release chart must define these keys — default off)
+# finopsStaff:
+#   enabled: false
+#   mode: readonly
+#   # supervised + FINOPS_STAFF_ALERT_PENDING_REPAIR only when operator opts in
+#   # autoAct: false
+#   # slackWebhookUrl: ""   # empty = no outbound Slack
+
 # Create ConfigMaps from this repo before first deploy — see deploy/helm/README.md
