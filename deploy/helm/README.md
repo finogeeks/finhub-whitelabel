@@ -50,7 +50,7 @@ Re-run without `extraArgs` to apply `replace_platform`.
 
 ## Platform settings seed
 
-After deploy, seed via admin **PUT** with `branding/platform-settings.json`, or run your site-specific Job that reads ConfigMap `wl-platform-settings`.
+After deploy, seed via admin **PUT** with `branding/platform-settings.json`, or run your site-specific Job that reads ConfigMap `wl-platform-settings`. The PUT stores `product_name` and `login_hero` only. See [`docs/admin-and-whitelabel.md`](../../docs/admin-and-whitelabel.md).
 
 Default deploy without `values-whitelabel.yaml` keeps upstream classic defaults — no white-label pin.
 

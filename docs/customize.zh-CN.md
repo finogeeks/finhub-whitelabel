@@ -2,28 +2,22 @@
 
 # 定制白标 FinHub
 
-典型 v1 部署中所有面向客户的变更均在**本仓库**完成 — 无需 fork chatkit-web 或 chatkit-middleware。
+典型 v1 部署的**种子**改动在**本仓库**完成 — 无需 fork chatkit-web 或 chatkit-middleware。堆栈起来之后，日常的 Logo、文案和预置技能在 FinHub 管理端修改。边界见 [`admin-and-whitelabel.zh-CN.md`](./admin-and-whitelabel.zh-CN.md)。
 
-## 1. 产品名称与认证界面
+## 1. 产品名称与登录主文案
 
 编辑 [`branding/platform-settings.json`](../branding/platform-settings.json)：
 
-- `product_name` — 显示于启动页、登录页与顶栏
-- `login_hero`, `auth_login`, `auth_register` — 标题与副标题（zh/en）
-- `family_line` — 认证页页脚行
-- `logo_url` — 静态挂载后的路径（默认 `/static/branding/acme-mark.svg`）
-- `document_titles` — 浏览器标签标题
+- `product_name`、`login_hero` — 线上设置 PUT 唯一会保存的字段。之后再跑种子 PUT，会覆盖**管理端 → 平台设置**里保存的同名字段。
+- `auth_login`、`auth_register`、`family_line`、`auth_show_marquee`、`document_titles`、`logo_url` — 仍参与本仓库校验和静态预览。线上 PUT 会丢掉这些键。浏览器标题跟着中文产品名走。
 
 编辑后运行 `./scripts/validate-artifacts.sh`。
 
 ## 2. Logo 与静态品牌
 
-替换 [`branding/assets/`](../branding/assets/) 下的文件：
+替换 [`branding/assets/`](../branding/assets/) 下的文件，供本地预览（方标、字标、favicon、OG）。
 
-- `acme-mark.svg` — 方形标记（可按需重命名文件；同步更新 `logo_url`）
-- `acme-wordmark.svg`, `favicon.svg`, `og-acme.svg`
-
-可选：跳过静态文件，通过管理员 **`PUT /admin/config/platform-settings/logo`** 上传，然后将 `logo_url` 指向 `/platform-uploads/...`。
+运行中的登录标是在**管理端 → 平台设置**上传的文件（`/platform-uploads/...`）。挂载 `branding/assets/` 不会写入 `logo_url`。再次执行种子 PUT 不会清掉已上传的 Logo。
 
 ## 3. 人设入门包
 

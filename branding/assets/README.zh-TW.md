@@ -11,6 +11,4 @@
 | `favicon.svg` | Browser tab icon |
 | `og-acme.svg` | Social / link preview (export to PNG if your edge requires raster) |
 
-Compose 與 Helm 覆寫層將此目錄掛載到 **`/static/branding`**，以便類似 `/static/branding/acme-mark.svg` 的路徑可公開存取。
-
-亦可透過管理員 **`PUT /admin/config/platform-settings/logo`** 上傳 logo，並在 `logo_url` 中使用 `/platform-uploads/...`。
+這些檔案供本機品牌預覽。執行中的登入標是管理端上傳的檔案（`POST /admin/config/platform-settings/logo` → `/platform-uploads/...`），不是種子裡的 `logo_url`。見 [`docs/admin-and-whitelabel.zh-TW.md`](../../docs/admin-and-whitelabel.zh-TW.md)。

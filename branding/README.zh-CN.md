@@ -24,16 +24,16 @@ curl -sS -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
   -d @branding/platform-settings.json
 ```
 
-将 `branding/assets/` 挂载到 `/static/branding`（见 `deploy/compose/` 或 `deploy/helm/`），以便 `logo_url` 可解析。通过 `GET /platform/settings` 以及登录 / 启动界面验证。
+线上 PUT 只保存 `product_name` 和 `login_hero`，不会采用本文件里的 `logo_url`。种子之后请在**管理端 → 平台设置**上传标。见 [`docs/admin-and-whitelabel.zh-CN.md`](../docs/admin-and-whitelabel.zh-CN.md)。通过 `GET /platform/settings` 以及登录 / 启动界面验证。
 
 ## 种子中的字段
 
-| Key | Role |
-|-----|------|
-| `product_name` | Masthead / splash |
-| `login_hero` | Auth left-pane headline |
-| `auth_login` / `auth_register` | Form titles and leads |
-| `family_line` | Footer / family line on auth |
-| `auth_show_marquee` | Marquee toggle (`false` in template) |
-| `logo_url` | Static mark path after asset mount |
-| `document_titles` | Browser titles (admin / web / mobile) |
+| 字段 | 作用 | 线上 PUT |
+| --- | --- | --- |
+| `product_name` | 启动页 / 顶栏 | 会保存 |
+| `login_hero` | 登录页主标题与副标题 | 会保存 |
+| `auth_login` / `auth_register` | 预览用的表单标题 | 丢掉 |
+| `family_line` | 预览用的页脚 | 丢掉 |
+| `auth_show_marquee` | 预览用的滚动开关 | 丢掉 |
+| `logo_url` | 预览资源路径 | 丢掉；登录标靠管理端上传 |
+| `document_titles` | 预览用的浏览器标题 | 丢掉；由中文产品名派生 |

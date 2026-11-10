@@ -2,28 +2,22 @@
 
 # Customize your white-label FinHub
 
-All customer-facing changes for a typical v1 deploy live **in this repository** — no chatkit-web or chatkit-middleware forks required.
+All customer-facing **seed** changes for a typical v1 deploy live **in this repository** — no chatkit-web or chatkit-middleware forks required. After the stack is up, day-2 logo, wording, and preset skills are changed in the FinHub admin console. Boundaries: [`admin-and-whitelabel.md`](./admin-and-whitelabel.md).
 
-## 1. Product name and auth chrome
+## 1. Product name and login hero
 
 Edit [`branding/platform-settings.json`](../branding/platform-settings.json):
 
-- `product_name` — shown on splash, login, and masthead
-- `login_hero`, `auth_login`, `auth_register` — headlines and subtitles (zh/en)
-- `family_line` — auth footer line
-- `logo_url` — path after static mount (default `/static/branding/acme-mark.svg`)
-- `document_titles` — browser tab titles
+- `product_name`, `login_hero` — the only fields the live settings PUT stores. A later seed PUT overwrites the same fields saved in **Admin → Platform settings**.
+- `auth_login`, `auth_register`, `family_line`, `auth_show_marquee`, `document_titles`, `logo_url` — kept for this repo's validator and static preview. The live PUT drops them. Browser titles follow the Chinese product name.
 
 Run `./scripts/validate-artifacts.sh` after edits.
 
 ## 2. Logos and static brand
 
-Replace files under [`branding/assets/`](../branding/assets/):
+Replace files under [`branding/assets/`](../branding/assets/) for the local preview (mark, wordmark, favicon, OG).
 
-- `acme-mark.svg` — square mark (rename files if you prefer; update `logo_url` accordingly)
-- `acme-wordmark.svg`, `favicon.svg`, `og-acme.svg`
-
-Optional: skip static files and upload via admin **`PUT /admin/config/platform-settings/logo`**, then point `logo_url` at `/platform-uploads/...`.
+The running login mark is the file uploaded in **Admin → Platform settings** (`/platform-uploads/...`). Mounting `branding/assets/` does not set `logo_url`. Re-running the seed PUT does not clear an uploaded logo.
 
 ## 3. Persona starter pack
 

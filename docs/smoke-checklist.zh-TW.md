@@ -11,10 +11,9 @@
 
 ## 品牌（Option B）
 
-- [ ] 啟動頁與登入頁顯示來自 `branding/platform-settings.json` 的**您的** `product_name`（非上游預設產品字串）。
-- [ ] Logo 可載入：`logo_url` 可存取（靜態掛載或上傳路徑）。
-- [ ] `auth_login` / `auth_register` 標題與種子文案一致。
-- [ ] 管理員可 **GET** 與種子一致的平台設定（發佈支援的相關欄位）。
+- [ ] 啟動頁與登入頁顯示來自 `branding/platform-settings.json` 的**您的** `product_name` 和 `login_hero`（非上游預設產品字串）。
+- [ ] 登入標是在**管理端 → 平台設定**上傳的檔案。僅有種子裡的 `logo_url` 不會生效。見 [`admin-and-whitelabel.zh-TW.md`](./admin-and-whitelabel.zh-TW.md)。
+- [ ] `GET /platform/settings` 的 `product_name` 與 `login_hero` 與種子一致。瀏覽器標題跟著中文產品名。`auth_login` / `auth_register` 只用在本機預覽。
 
 ## Persona pack
 

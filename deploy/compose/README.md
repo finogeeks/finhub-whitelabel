@@ -47,6 +47,8 @@ curl -sS -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
   -d @"$WL_PLATFORM_SETTINGS_HOST_PATH"
 ```
 
+This stores `product_name` and `login_hero` only. It does not set the logo or sync preset skills. See [`docs/admin-and-whitelabel.md`](../../docs/admin-and-whitelabel.md).
+
 ## Steady-state
 
 ```bash

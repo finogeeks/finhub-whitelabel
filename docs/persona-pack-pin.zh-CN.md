@@ -39,6 +39,8 @@
 
 您的 pack 文件必须设置 `"sync_mode": "replace_platform"`。Compose 与 Helm 封装会调用此二进制；服务名与 profile 请遵循发布 README。
 
+这次修剪不会同步或删除预置技能。**管理端 → 同步预置技能**是 skill-service 的 `POST /admin/skills/sync-preset`。Compose profile 名 `persona-skill` 是人设栈，不是那个按钮。见 [`admin-and-whitelabel.zh-CN.md`](./admin-and-whitelabel.zh-CN.md)。
+
 ### 内置路径保护
 
 当解析的配置为**内置**默认 `config/persona-templates.json` 时，CLI 会拒绝 `replace_platform`，除非传入 **`--i-know`**。白标部署必须使用**外部**路径（本仓库的 `persona-templates.json`）。切勿在共享多租户默认部署上对内置默认运行 replace。

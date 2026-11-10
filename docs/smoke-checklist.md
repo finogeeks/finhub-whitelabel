@@ -16,10 +16,9 @@ Run after Phase 1 (default stack) and Phase 2 (white-label overlays) from [`skil
 
 ## Branding (Option B)
 
-- [ ] Splash and login show **your** `product_name` from `branding/platform-settings.json` (not upstream default product strings).
-- [ ] Logo resolves: `logo_url` loads (static mount or upload path).
-- [ ] `auth_login` / `auth_register` titles match your seed copy.
-- [ ] Admin can **GET** platform settings matching your seed (fields your release supports).
+- [ ] Splash and login show **your** `product_name` and `login_hero` from `branding/platform-settings.json` (not upstream default product strings).
+- [ ] Login mark is the file uploaded in **Admin → Platform settings**. The seed `logo_url` alone does not set it. See [`admin-and-whitelabel.md`](./admin-and-whitelabel.md).
+- [ ] `GET /platform/settings` matches the seed for `product_name` and `login_hero`. Browser titles follow the Chinese product name. `auth_login` / `auth_register` are preview-only.
 
 ## Persona pack
 

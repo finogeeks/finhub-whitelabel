@@ -2,28 +2,22 @@
 
 # 自訂白標 FinHub
 
-典型 v1 部署中所有面向客戶的變更均在**本儲存庫**完成 — 無需 fork chatkit-web 或 chatkit-middleware。
+典型 v1 部署的**種子**改動在**本儲存庫**完成 — 無需 fork chatkit-web 或 chatkit-middleware。堆疊起來之後，日常的 Logo、文案和預置技能在 FinHub 管理端修改。邊界見 [`admin-and-whitelabel.zh-TW.md`](./admin-and-whitelabel.zh-TW.md)。
 
-## 1. 產品名稱與認證介面
+## 1. 產品名稱與登入主文案
 
 編輯 [`branding/platform-settings.json`](../branding/platform-settings.json)：
 
-- `product_name` — 顯示於啟動頁、登入頁與頂欄
-- `login_hero`, `auth_login`, `auth_register` — 標題與副標題（zh/en）
-- `family_line` — 認證頁頁尾行
-- `logo_url` — 靜態掛載後的路徑（預設 `/static/branding/acme-mark.svg`）
-- `document_titles` — 瀏覽器分頁標題
+- `product_name`、`login_hero` — 線上設定 PUT 唯一會儲存的欄位。之後再跑種子 PUT，會覆蓋**管理端 → 平台設定**裡儲存的同名欄位。
+- `auth_login`、`auth_register`、`family_line`、`auth_show_marquee`、`document_titles`、`logo_url` — 仍參與本儲存庫驗證和靜態預覽。線上 PUT 會丟掉這些鍵。瀏覽器標題跟著中文產品名走。
 
 編輯後執行 `./scripts/validate-artifacts.sh`。
 
 ## 2. Logo 與靜態品牌
 
-替換 [`branding/assets/`](../branding/assets/) 下的檔案：
+替換 [`branding/assets/`](../branding/assets/) 下的檔案，供本機預覽（方標、字標、favicon、OG）。
 
-- `acme-mark.svg` — 方形標記（可按需重新命名檔案；同步更新 `logo_url`）
-- `acme-wordmark.svg`, `favicon.svg`, `og-acme.svg`
-
-選用：跳過靜態檔案，透過管理員 **`PUT /admin/config/platform-settings/logo`** 上傳，然後將 `logo_url` 指向 `/platform-uploads/...`。
+執行中的登入標是在**管理端 → 平台設定**上傳的檔案（`/platform-uploads/...`）。掛載 `branding/assets/` 不會寫入 `logo_url`。再次執行種子 PUT 不會清掉已上傳的 Logo。
 
 ## 3. 人設入門包
 

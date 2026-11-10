@@ -246,6 +246,8 @@ Run when the default stack is healthy and the operator wants this fork's brandin
      -d @"$WL_PLATFORM_SETTINGS_HOST_PATH"
    ```
 
+   The live API keeps only `product_name` and `login_hero` from that file. Re-running this PUT overwrites those two fields if an admin already saved them, and it leaves an uploaded logo in place. It does not call preset-skill sync. See [`docs/admin-and-whitelabel.md`](../../docs/admin-and-whitelabel.md). After the seed, upload the login mark in **Admin → Platform settings** when the splash must show the customer file.
+
 6. **Helm** — create ConfigMaps from [`deploy/helm/`](../../deploy/helm/), then:
 
    ```bash

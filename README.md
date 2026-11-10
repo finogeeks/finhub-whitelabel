@@ -52,6 +52,7 @@ docs/
     finops-notifications.md    # alert channels
     day-2-ops.md               # upgrade, backup, teardown
   persona-pack-pin.md
+  admin-and-whitelabel.md      # admin logo/copy + preset skills vs seeds
   customize.md
   smoke-checklist.md
   brand-preview.md             # post-deploy screenshot comparison
@@ -71,6 +72,10 @@ artifacts/
 ## Reference deploy
 
 A finished FinHub skin is live at [finhub.finaios.ai](https://finhub.finaios.ai) (Finogeeks reference — not a required hostname for your fork). Product page: [FinHub on finaios.ai](https://finaios.ai/en/products/finhub/).
+
+## Admin UI and this repo
+
+Logo, product copy, and **Sync preset skills** stay available in the FinHub admin console after a white-label deploy. The seed PUT writes only product name and login hero; it does not replace the skill catalog or an uploaded logo. See [`docs/admin-and-whitelabel.md`](./docs/admin-and-whitelabel.md).
 
 ## Pack sync (summary)
 

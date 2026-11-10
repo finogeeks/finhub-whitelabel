@@ -39,6 +39,8 @@ The tool ships **inside the chatkit / FinHub offline release**, not in this repo
 
 Your pack file must set `"sync_mode": "replace_platform"`. Compose and Helm wrappers invoke this binary; follow your release README for service names and profiles.
 
+This prune does not sync or delete preset skills. **Admin → Sync preset skills** is `POST /admin/skills/sync-preset` on skill-service. The Compose profile name `persona-skill` is the persona stack, not that button. See [`admin-and-whitelabel.md`](./admin-and-whitelabel.md).
+
 ### Bundled-path guard
 
 The CLI refuses `replace_platform` when the resolved config is the **bundled** default `config/persona-templates.json` unless you pass **`--i-know`**. White-label deploys must use an **external** path (this repo's `persona-templates.json`). Never run replace against the bundled default on a shared multi-tenant default deploy.

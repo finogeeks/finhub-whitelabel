@@ -12,6 +12,7 @@ This repository is the **customer-facing** documentation and artifact template f
 | Step | Skill / doc | Purpose |
 |------|-------------|---------|
 | 1 | [`skills/finhub-deploy/SKILL.md`](./skills/finhub-deploy/SKILL.md) | White-label overlays (branding, persona pack, optional OAuth) |
+| 1b | [`docs/admin-and-whitelabel.md`](./docs/admin-and-whitelabel.md) | Admin logo/copy and preset-skill sync vs this repo's seeds |
 | 2 | [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.md) | Full path: release unpack → env bootstrap → fleet → doctor → smoke |
 | 3 | [`docs/operations/install.md`](./docs/operations/install.md) | First-time install and first `fleet.sh up` |
 | 4 | [`docs/operations/env-reference.md`](./docs/operations/env-reference.md) | Auto-generated vs human-supplied `.env` keys |
