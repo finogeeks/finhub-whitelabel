@@ -24,16 +24,16 @@ curl -sS -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
   -d @branding/platform-settings.json
 ```
 
-將 `branding/assets/` 掛載到 `/static/branding`（見 `deploy/compose/` 或 `deploy/helm/`），以便 `logo_url` 可解析。透過 `GET /platform/settings` 以及登入 / 啟動介面驗證。
+線上 PUT 只儲存 `product_name` 和 `login_hero`，不會採用本檔案裡的 `logo_url`。種子之後請在**管理端 → 平台設定**上傳標。見 [`docs/admin-and-whitelabel.zh-TW.md`](../docs/admin-and-whitelabel.zh-TW.md)。透過 `GET /platform/settings` 以及登入 / 啟動介面驗證。
 
 ## 種子中的欄位
 
-| Key | Role |
-|-----|------|
-| `product_name` | Masthead / splash |
-| `login_hero` | Auth left-pane headline |
-| `auth_login` / `auth_register` | Form titles and leads |
-| `family_line` | Footer / family line on auth |
-| `auth_show_marquee` | Marquee toggle (`false` in template) |
-| `logo_url` | Static mark path after asset mount |
-| `document_titles` | Browser titles (admin / web / mobile) |
+| 欄位 | 作用 | 線上 PUT |
+| --- | --- | --- |
+| `product_name` | 啟動頁 / 頂欄 | 會儲存 |
+| `login_hero` | 登入頁主標題與副標題 | 會儲存 |
+| `auth_login` / `auth_register` | 預覽用的表單標題 | 丟掉 |
+| `family_line` | 預覽用的頁尾 | 丟掉 |
+| `auth_show_marquee` | 預覽用的捲動開關 | 丟掉 |
+| `logo_url` | 預覽資源路徑 | 丟掉；登入標靠管理端上傳 |
+| `document_titles` | 預覽用的瀏覽器標題 | 丟掉；由中文產品名衍生 |

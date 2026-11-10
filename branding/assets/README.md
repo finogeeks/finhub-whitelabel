@@ -11,6 +11,4 @@ Replace these placeholder SVGs with your mark, wordmark, favicon, and Open Graph
 | `favicon.svg` | Browser tab icon |
 | `og-acme.svg` | Social / link preview (export to PNG if your edge requires raster) |
 
-Compose and Helm overlays mount this directory at **`/static/branding`** so paths like `/static/branding/acme-mark.svg` resolve publicly.
-
-Alternatively upload a logo via admin **`PUT /admin/config/platform-settings/logo`** and use `/platform-uploads/...` in `logo_url`.
+These files feed the local brand preview. The live login mark is the admin upload (`POST /admin/config/platform-settings/logo` → `/platform-uploads/...`), not `logo_url` in the seed. See [`docs/admin-and-whitelabel.md`](../../docs/admin-and-whitelabel.md).

@@ -24,16 +24,16 @@ curl -sS -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
   -d @branding/platform-settings.json
 ```
 
-Mount `branding/assets/` at `/static/branding` (see `deploy/compose/` or `deploy/helm/`) so `logo_url` resolves. Verify with `GET /platform/settings` and the login / splash UI.
+The live PUT stores `product_name` and `login_hero` only. It does not apply `logo_url` from this file. Upload the mark in **Admin → Platform settings** after the seed. See [`docs/admin-and-whitelabel.md`](../docs/admin-and-whitelabel.md). Verify with `GET /platform/settings` and the login / splash UI.
 
 ## Fields in the seed
 
-| Key | Role |
-|-----|------|
-| `product_name` | Masthead / splash |
-| `login_hero` | Auth left-pane headline |
-| `auth_login` / `auth_register` | Form titles and leads |
-| `family_line` | Footer / family line on auth |
-| `auth_show_marquee` | Marquee toggle (`false` in template) |
-| `logo_url` | Static mark path after asset mount |
-| `document_titles` | Browser titles (admin / web / mobile) |
+| Key | Role | Live PUT |
+|-----|------|----------|
+| `product_name` | Masthead / splash | Stored |
+| `login_hero` | Auth left-pane headline | Stored |
+| `auth_login` / `auth_register` | Preview form titles | Dropped |
+| `family_line` | Preview footer line | Dropped |
+| `auth_show_marquee` | Preview marquee toggle | Dropped |
+| `logo_url` | Preview asset path | Dropped; admin upload sets the live mark |
+| `document_titles` | Preview browser titles | Dropped; derived from the Chinese product name |

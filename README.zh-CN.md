@@ -47,6 +47,7 @@ docs/
   agent-deploy-runbook.zh-CN.md
   operations/                  # 安装、环境变量、finops、通知、日常运维
   persona-pack-pin.md
+  admin-and-whitelabel.md      # 管理端 Logo/文案、预置技能与种子的边界
   customize.md
   smoke-checklist.md
 skills/
@@ -58,6 +59,10 @@ scripts/
 ## 参考部署
 
 已完成 FinHub 皮肤的线上实例：[finhub.finaios.ai](https://finhub.finaios.ai)（Finogeeks 参考示例 — 并非您 fork 的必选主机名）。产品页：[finaios.ai 上的 FinHub](https://finaios.ai/zh-hans/products/finhub/)。
+
+## 管理端与本仓库
+
+白标部署之后，管理端仍可改 Logo、文案，并使用**同步预置技能**。种子 PUT 只写入产品名和登录主文案，不会替换技能目录，也不会清掉已上传的 Logo。见 [`docs/admin-and-whitelabel.zh-CN.md`](./docs/admin-and-whitelabel.zh-CN.md)。
 
 ## Pack 同步（摘要）
 

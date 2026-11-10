@@ -11,10 +11,9 @@
 
 ## 品牌（Option B）
 
-- [ ] 启动页与登录页显示来自 `branding/platform-settings.json` 的**您的** `product_name`（非上游默认产品字符串）。
-- [ ] Logo 可加载：`logo_url` 可访问（静态挂载或上传路径）。
-- [ ] `auth_login` / `auth_register` 标题与种子文案一致。
-- [ ] 管理员可 **GET** 与种子一致的平台设置（发布支持的相关字段）。
+- [ ] 启动页与登录页显示来自 `branding/platform-settings.json` 的**您的** `product_name` 和 `login_hero`（非上游默认产品字符串）。
+- [ ] 登录标是在**管理端 → 平台设置**上传的文件。仅有种子里的 `logo_url` 不会生效。见 [`admin-and-whitelabel.zh-CN.md`](./admin-and-whitelabel.zh-CN.md)。
+- [ ] `GET /platform/settings` 的 `product_name` 与 `login_hero` 与种子一致。浏览器标题跟着中文产品名。`auth_login` / `auth_register` 只用于本地预览。
 
 ## Persona pack
 

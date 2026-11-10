@@ -47,6 +47,8 @@ curl -sS -X PUT "$ADMIN_BASE/admin/config/platform-settings" \
   -d @"$WL_PLATFORM_SETTINGS_HOST_PATH"
 ```
 
+這次只儲存 `product_name` 和 `login_hero`。不會設定 Logo，也不會同步預置技能。見 [`docs/admin-and-whitelabel.zh-TW.md`](../../docs/admin-and-whitelabel.zh-TW.md)。
+
 ## 穩態執行
 
 ```bash

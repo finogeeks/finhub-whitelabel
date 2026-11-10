@@ -74,7 +74,7 @@ After Phase 2 from [`finhub-deploy`](../finhub-deploy/SKILL.md):
 
 1. Capture a screenshot of the real login URL (desktop and mobile).
 2. Side-by-side with `artifacts/brand-preview/login-preview-*.png`.
-3. Confirm product name, logo, hero, form titles, and theme colors are in the same ballpark; note intentional upstream differences.
+3. Confirm product name and login hero against the deployed page. Form titles, family line, and theme colors in the preview are local-only; the live login does not apply `auth_login`, `auth_register`, `family_line`, or `theme-tokens.json`. The live logo is the admin upload, not `logo_url` in the seed. See [`docs/admin-and-whitelabel.md`](../../docs/admin-and-whitelabel.md).
 
 See [`docs/smoke-checklist.md`](../../docs/smoke-checklist.md) — **Brand preview vs live login** section.
 

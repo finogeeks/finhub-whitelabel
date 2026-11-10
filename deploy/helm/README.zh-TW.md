@@ -50,7 +50,7 @@ helm upgrade --install chatkit deploy/k8s/helm/chatkit \
 
 ## Platform settings 種子
 
-部署後，透過管理員 **PUT** 使用 `branding/platform-settings.json` 種子，或執行讀取 ConfigMap `wl-platform-settings` 的站點專用 Job。
+部署後，透過管理員 **PUT** 使用 `branding/platform-settings.json` 種子，或執行讀取 ConfigMap `wl-platform-settings` 的站點專用 Job。這次 PUT 只儲存 `product_name` 和 `login_hero`。見 [`docs/admin-and-whitelabel.zh-TW.md`](../../docs/admin-and-whitelabel.zh-TW.md)。
 
 未使用 `values-whitelabel.yaml` 的預設部署保持上游經典預設值 — 無白標固定。
 
