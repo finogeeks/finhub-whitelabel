@@ -39,7 +39,7 @@ flowchart TB
 
 | 组件 | 默认随包启用？ | 作用 |
 |------|----------------|------|
-| **email-connector** | 否（`email` profile / `emailConnector.enabled: false`） | Webhook、绑定/开通 API、外发 |
+| **email-connector** | 否（Compose `email` profile；Helm `services.email-connector.enabled: false`） | Webhook、绑定/开通 API、外发 |
 | **Reloop** | 运维自建 | MX、API、邮箱生命周期 |
 | **Admin 渠道 `email`** | Admin → 渠道 → 邮件 | 租户 `reloop_*` 配置；GET/PUT 脱敏 |
 | **终端用户绑定 UI** | v1 未交付 | 使用用户 Bearer 调 HTTP API |
@@ -100,12 +100,15 @@ DNS 生效后，在 Reloop UI/API 确认域名 **已验证**，记下 **`domain_
 | `/internal/status`、`/reload`、`/test-connection`、`/send-outbound`、`/provision`、`/bind` | 仅内网 | `INTERNAL_SERVICE_TOKEN` |
 | `/api/email/*` | 经网关 | 用户 **Bearer** JWT |
 
-随 **`docker-compose.prod.yml`** 与发布 Helm chart 自带的 **API 网关（nginx）** 已路由：
+随包 **API 网关（nginx）** 路由（**勿自行添加 nginx 配置**）：
 
 - `POST /webhooks/reloop`
 - `GET /api/email/bind/state`、`POST /api/email/bind`、`POST /api/email/provision`、`GET /api/email/status`
 
-流量经 variable upstream 与 resolver 转到 **email-connector** 端口 **26464**。**勿自行添加 nginx 配置** — 运维仅需启用 connector 服务。网关可在 connector 未启动时照常启动；上述路由在 connector 未运行时会返回 **502**。
+| 部署 | connector 关闭时的网关行为 |
+|------|---------------------------|
+| **Docker Compose** | 路由保留；variable upstream + resolver 指向 **email-connector:26464** — 网关可启动；connector 未运行前路径返回 **502**。 |
+| **Helm** | 仅当 `services.email-connector.enabled: true` 时渲染邮件 nginx 块；关闭时不暴露上述路由（无 502 占位）。 |
 
 保留 Reloop HMAC 校验所需的请求头与正文。
 
@@ -138,28 +141,21 @@ docker compose -f docker-compose.prod.yml --profile email up -d email-connector
 
 ### Helm
 
+Chart 单一开关（发布包 `422800e7` 及以后）：启用 connector 时会自动注入对端 env 与网关路由。
+
 ```yaml
-emailConnector:
-  enabled: true
 services:
   email-connector:
     enabled: true
-servicesEnv:
-  identity-service:
-    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
-  delivery:
-    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
-    CONFIG_EMAIL_CONNECTOR_URL: "http://email-connector:26464"
 ```
 
 ```bash
 helm upgrade --install <release> <chart-path> \
   -f deploy/helm/values-whitelabel.yaml \
-  --set emailConnector.enabled=true \
   --set services.email-connector.enabled=true
 ```
 
-Chart 已含上述邮件路由的网关 Ingress，无需额外片段。
+当 `services.email-connector.enabled: true` 时，chart 为 **identity-service** 与 **delivery** 设置 **`EMAIL_CONNECTOR_URL`**=`http://email-connector:26464`，为 **delivery** 设置 **`CONFIG_EMAIL_CONNECTOR_URL`** 为同一 URL，并渲染邮件 nginx 块。为 **false** 时省略上述 env 且不渲染网关邮件路由 — **勿**在 `servicesEnv` 中手工填写这些 URL。
 
 ## 环境与密钥
 
@@ -186,7 +182,7 @@ Chart 已含上述邮件路由的网关 Ingress，无需额外片段。
 | **delivery** | `EMAIL_CONNECTOR_URL` | 否 | 外发至 connector |
 | **delivery** | `CONFIG_EMAIL_CONNECTOR_URL` | 否 | 可选；发布包接线时的同类钩子 |
 
-Compose 对端 URL 使用 Docker DNS **`http://chatkit-email-connector:26464`**。Helm 使用 **`http://email-connector:26464`**。**orchestrator 不配置** `EMAIL_CONNECTOR_URL`。
+**Compose：** 在 `.env` 为 **identity-service** 与 **delivery** 设置 **`http://chatkit-email-connector:26464`**（delivery 可选 `CONFIG_EMAIL_CONNECTOR_URL`），并重启二者。**Helm：** 当 `services.email-connector.enabled: true` 时 chart 自动注入 **`http://email-connector:26464`**（关闭时省略）。**orchestrator 不配置** `EMAIL_CONNECTOR_URL`。
 
 ### Admin → 渠道 → 邮件（生产 Reloop）
 
@@ -204,7 +200,7 @@ Compose 对端 URL 使用 Docker DNS **`http://chatkit-email-connector:26464`**�
 
 | 步骤 | 操作 |
 |------|------|
-| **A. 启用运行时** | 拉起 `email-connector`（compose profile 或 Helm）；在 `.env` 设置对端 URL 并 **重启 identity-service 与 delivery**。 |
+| **A. 启用运行时** | **Compose：** `email` profile + `.env` 对端 URL，重启 identity-service 与 delivery。**Helm：** 仅 `--set services.email-connector.enabled=true`（chart 接线对端与 nginx）。 |
 | **B. Reloop** | 自建 Reloop；创建 `rl_…` API 密钥；在 Reloop 控制台 **手动** 注册 Webhook URL 与签名密钥。 |
 | **C. DNS** | 发布 MX/SPF/DKIM/验证记录；等待 Reloop 域名验证；复制 `domain_id`。 |
 | **D. Admin → 渠道 → 邮件** | 填写 `reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url`（自建 API 根）。保存（触发 reload）。 |
@@ -295,7 +291,7 @@ curl -sS -H "Authorization: Bearer <USER_ACCESS_TOKEN>" \
 ## 禁用与回滚
 
 1. 删除或注释 `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` 以停止外发转发。
-2. 关闭 compose profile 或 Helm 设 `emailConnector.enabled=false`。
+2. 关闭 compose profile 或 Helm 设 `services.email-connector.enabled=false`。
 3. 在 Admin 禁用渠道或按变更窗口清理租户密钥。
 4. Reloop：下线 Webhook 或轮换密钥以退役渠道。
 
@@ -308,7 +304,7 @@ curl -sS -H "Authorization: Bearer <USER_ACCESS_TOKEN>" \
 | `domain_verified: false` | DNS 传播；`domain_id` 与 Reloop 一致；`agent_mailbox_domain` 拼写 |
 | Webhook 401/403 | Admin `webhook_secret` 与 Reloop 一致；网关保留 HMAC 所需正文 |
 | 无入站 | MX 指向 Reloop；Webhook URL 为公网 HTTPS；防火墙允许 Reloop → 网关 |
-| 网关对 `/webhooks/reloop` 或 `/api/email/*` 返回 502 | connector 未运行或未启用 profile/chart — connector 拉起前属预期 |
+| 网关对 `/webhooks/reloop` 或 `/api/email/*` 返回 502（**Compose**） | connector 未运行 — connector 拉起前属预期（Helm 关闭时不渲染路由） |
 | 从不外发 | **delivery** / **identity-service** 未设 `EMAIL_CONNECTOR_URL`；改 env 后未重启；`transport_ready` 为 true |
 | 绑定失败 | 每租户仅一绑；使用新 `bind_state`；用户令牌有效 |
 | 生产误用 Cloud | Admin 填写自建 `api_base_url`；策略禁止留空 |

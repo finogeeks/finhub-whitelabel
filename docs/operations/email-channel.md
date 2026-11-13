@@ -39,7 +39,7 @@ flowchart TB
 
 | Component | Default in bundle? | Role |
 |-----------|-------------------|------|
-| **email-connector** | No (`email` profile / `emailConnector.enabled: false`) | Webhooks, bind/provision APIs, outbound send |
+| **email-connector** | No (Compose `email` profile; Helm `services.email-connector.enabled: false`) | Webhooks, bind/provision APIs, outbound send |
 | **Reloop** | Operator-supplied (self-host) | MX, API, mailbox lifecycle |
 | **Admin channel `email`** | UI in Admin → Channels → Email | Tenant `reloop_*` settings; secrets masked on GET/PUT |
 | **End-user bind UI** | Not shipped in v1 | Use HTTP APIs with user Bearer token |
@@ -100,12 +100,15 @@ After DNS propagates, confirm in Reloop UI/API that the domain is **verified** a
 | `/internal/status`, `/reload`, `/test-connection`, `/send-outbound`, `/provision`, `/bind` | Internal only | `INTERNAL_SERVICE_TOKEN` |
 | `/api/email/*` | Via gateway as documented | User **Bearer** JWT |
 
-The shipped **API gateway (nginx)** in `docker-compose.prod.yml` and the release Helm chart already routes:
+The shipped **API gateway (nginx)** routes (operators **do not add custom nginx config**):
 
 - `POST /webhooks/reloop`
 - `GET /api/email/bind/state`, `POST /api/email/bind`, `POST /api/email/provision`, `GET /api/email/status`
 
-Traffic uses a variable upstream and resolver to **email-connector** on port **26464**. **Do not add custom nginx config** — operators only enable the connector service. The gateway starts even when the connector is off; these routes return **502** until `email-connector` is running.
+| Deploy | Gateway behavior when connector is off |
+|--------|--------------------------------------|
+| **Docker Compose** | Routes stay in config; variable upstream + resolver to **email-connector:26464** — gateway starts; paths return **502** until the connector runs. |
+| **Helm** | Email nginx blocks render **only when** `services.email-connector.enabled: true`; disabled releases omit those routes (no 502 stubs). |
 
 Preserve request bodies and headers Reloop needs for HMAC verification.
 
@@ -138,28 +141,21 @@ Persist `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` in `.env` (or your 
 
 ### Helm
 
+Single chart switch (release `422800e7+`): enabling the connector also injects peer env and gateway routes.
+
 ```yaml
-emailConnector:
-  enabled: true
 services:
   email-connector:
     enabled: true
-servicesEnv:
-  identity-service:
-    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
-  delivery:
-    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
-    CONFIG_EMAIL_CONNECTOR_URL: "http://email-connector:26464"
 ```
 
 ```bash
 helm upgrade --install <release> <chart-path> \
   -f deploy/helm/values-whitelabel.yaml \
-  --set emailConnector.enabled=true \
   --set services.email-connector.enabled=true
 ```
 
-Gateway ingress for the email routes is already in the chart; no extra ingress snippets required.
+When `services.email-connector.enabled: true`, the chart sets **`EMAIL_CONNECTOR_URL`** on **identity-service** and **delivery** to `http://email-connector:26464`, sets **`CONFIG_EMAIL_CONNECTOR_URL`** on **delivery** to the same URL, and renders the email nginx blocks. When **false**, those env vars are **omitted** and gateway email routes are not rendered — do **not** hand-edit `servicesEnv` for these URLs.
 
 ## Environment and secrets
 
@@ -186,7 +182,7 @@ Gateway ingress for the email routes is already in the chart; no extra ingress s
 | **delivery** | `EMAIL_CONNECTOR_URL` | No | Outbound email to connector |
 | **delivery** | `CONFIG_EMAIL_CONNECTOR_URL` | No | Optional; same hook when release wires config fan-out |
 
-Compose peer URLs use Docker DNS **`http://chatkit-email-connector:26464`**. Helm uses **`http://email-connector:26464`**. The orchestrator is **not** configured with `EMAIL_CONNECTOR_URL`.
+**Compose:** set **`http://chatkit-email-connector:26464`** on **identity-service** and **delivery** in `.env` (and optional `CONFIG_EMAIL_CONNECTOR_URL` on delivery), then restart those services. **Helm:** the chart injects **`http://email-connector:26464`** on both services when `services.email-connector.enabled: true` (omits when false). The orchestrator is **not** configured with `EMAIL_CONNECTOR_URL`.
 
 ### Admin → Channels → Email (production Reloop)
 
@@ -204,7 +200,7 @@ Tenant channel fields persist in **SiteChannelsConfig** (`channel` id `email`). 
 
 | Step | Action |
 |------|--------|
-| **A. Enable runtime** | Bring up `email-connector` (compose profile or Helm) and set `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` if outbound email is required. |
+| **A. Enable runtime** | **Compose:** `email` profile + peer URLs in `.env`, restart identity-service and delivery. **Helm:** `--set services.email-connector.enabled=true` only (chart wires peers and nginx). |
 | **B. Reloop** | Self-host Reloop; create `rl_…` API key; **manually** register webhook URL and signing secret in Reloop’s UI. |
 | **C. DNS** | Publish MX/SPF/DKIM/verification; wait for Reloop domain verified; copy `domain_id`. |
 | **D. Admin → Channels → Email** | Enter `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, and `api_base_url` (self-host API root). Save (reloads connector). |
@@ -295,7 +291,7 @@ Optional Prometheus: scrape only if the release exposes `/metrics` on the connec
 ## Disable and rollback
 
 1. Remove or comment `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` to stop outbound fan-out.
-2. Scale down compose profile or `emailConnector.enabled=false` on Helm.
+2. Scale down compose profile or `services.email-connector.enabled=false` on Helm.
 3. Disable channel in Admin or clear tenant secrets per your change window.
 4. Reloop: disable webhook or rotate secret if retiring the channel.
 
@@ -308,7 +304,7 @@ Core chat remains available throughout.
 | `domain_verified: false` | DNS propagation; `domain_id` matches Reloop; `agent_mailbox_domain` spelling |
 | Webhook 401/403 | `webhook_secret` in Admin matches Reloop; gateway preserves body for HMAC |
 | No inbound | MX points to Reloop; Reloop webhook URL is public HTTPS; firewall allows Reloop → gateway |
-| Gateway 502 on `/webhooks/reloop` or `/api/email/*` | Connector not running or profile/chart disabled — expected until `email-connector` is up |
+| Gateway 502 on `/webhooks/reloop` or `/api/email/*` (**Compose**) | Connector not running — expected until `email-connector` is up (Helm omits routes when disabled) |
 | Outbound never sends | `EMAIL_CONNECTOR_URL` unset on **delivery** / **identity-service**; restart after env change; `transport_ready` true |
 | Bind fails | One bind per tenant; consume fresh `bind_state`; user token valid |
 | Demo cloud in prod | Non-empty self-host `api_base_url` in Admin; block empty `api_base_url` in policy |

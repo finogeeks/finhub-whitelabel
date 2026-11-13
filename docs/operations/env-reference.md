@@ -80,7 +80,7 @@ Missing or invalid license → identity-service refuses to start.
 
 ## Optional email channel (Reloop)
 
-Off by default (`email` profile on `docker-compose.prod.yml` / `emailConnector.enabled: false`). Full deploy: [email channel](./email-channel.md).
+Off by default (Compose `email` profile on `docker-compose.prod.yml`; Helm `services.email-connector.enabled: false`). Full deploy: [email channel](./email-channel.md).
 
 **email-connector** container:
 
@@ -97,10 +97,12 @@ Dev-only on connector (production uses Admin): `RELOOP_*`, `EMAIL_CONNECTOR_AGEN
 
 **Peers** (orchestrator does **not** take `EMAIL_CONNECTOR_URL`):
 
-| Service | Variable | Notes |
-|---------|----------|-------|
-| identity-service | `EMAIL_CONNECTOR_URL` | Compose: `http://chatkit-email-connector:26464`; Helm: `http://email-connector:26464` |
-| delivery | `EMAIL_CONNECTOR_URL`, optional `CONFIG_EMAIL_CONNECTOR_URL` | Outbound fan-out; restart after change |
+| Service | Variable | Compose | Helm |
+|---------|----------|---------|------|
+| identity-service | `EMAIL_CONNECTOR_URL` | Operator sets `http://chatkit-email-connector:26464` in `.env`; restart service | Chart injects `http://email-connector:26464` when `services.email-connector.enabled: true`; omitted when false |
+| delivery | `EMAIL_CONNECTOR_URL`, optional `CONFIG_EMAIL_CONNECTOR_URL` | Operator sets in `.env`; restart service | Chart injects both URLs when connector enabled; omitted when false |
+
+Do **not** set peer `EMAIL_CONNECTOR_*` in Helm `servicesEnv` — the chart owns those when the connector is enabled.
 
 **Admin** → Channels → Email: `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, `api_base_url` (masked on GET/PUT).
 

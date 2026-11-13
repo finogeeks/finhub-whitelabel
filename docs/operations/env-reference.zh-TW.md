@@ -80,7 +80,7 @@
 
 ## 選用郵件渠道（Reloop）
 
-預設關閉（`docker-compose.prod.yml` 的 `email` profile / `emailConnector.enabled: false`）。完整部署見 [郵件渠道](./email-channel.zh-TW.md)。
+預設關閉（Compose：`docker-compose.prod.yml` 的 `email` profile；Helm：`services.email-connector.enabled: false`）。完整部署見 [郵件渠道](./email-channel.zh-TW.md)。
 
 **email-connector** 容器：
 
@@ -97,10 +97,12 @@ connector 上僅 dev：`RELOOP_*`、`EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`、`EM
 
 **對等服務**（**orchestrator 不設定** `EMAIL_CONNECTOR_URL`）：
 
-| 服務 | 變數 | 說明 |
-|------|------|------|
-| identity-service | `EMAIL_CONNECTOR_URL` | Compose：`http://chatkit-email-connector:26464`；Helm：`http://email-connector:26464` |
-| delivery | `EMAIL_CONNECTOR_URL`、選用 `CONFIG_EMAIL_CONNECTOR_URL` | 外寄轉發；變更後須重啟 |
+| 服務 | 變數 | Compose | Helm |
+|------|------|---------|------|
+| identity-service | `EMAIL_CONNECTOR_URL` | 維運在 `.env` 設 `http://chatkit-email-connector:26464`；重啟服務 | `services.email-connector.enabled: true` 時 chart 注入 `http://email-connector:26464`；關閉時省略 |
+| delivery | `EMAIL_CONNECTOR_URL`、選用 `CONFIG_EMAIL_CONNECTOR_URL` | 維運在 `.env` 設定；重啟服務 | connector 啟用時 chart 注入兩 URL；關閉時省略 |
+
+**勿**在 Helm `servicesEnv` 中手動設定對端 `EMAIL_CONNECTOR_*` — 由 chart 在啟用 connector 時寫入。
 
 **Admin** → 渠道 → 郵件：`reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url`（GET/PUT 遮罩）。
 

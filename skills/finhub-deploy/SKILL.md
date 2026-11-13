@@ -263,7 +263,7 @@ Run when the default stack is healthy and the operator wants this fork's brandin
 
 ## Phase 1.7 — Email channel (opt-in only)
 
-Optional **Reloop** agent mail via **email-connector**; default **off** (`email` profile on `docker-compose.prod.yml` / `emailConnector.enabled: false`). Not on the web chat path.
+Optional **Reloop** agent mail via **email-connector**; default **off** (Compose `email` profile; Helm `services.email-connector.enabled: false`). Not on the web chat path.
 
 1. Docs: [`docs/operations/email-channel.md`](../../docs/operations/email-channel.md).
 2. **Production:** self-host Reloop; register inbound webhook **manually in Reloop’s UI**; do not use Reloop Cloud (`api_base_url` empty is demo-only).
@@ -276,7 +276,7 @@ Optional **Reloop** agent mail via **email-connector**; default **off** (`email`
    # restart identity-service and delivery
    ```
 
-4. Helm: `emailConnector.enabled=true`, `services.email-connector.enabled=true`; set `servicesEnv.identity-service.EMAIL_CONNECTOR_URL` and `servicesEnv.delivery.*` per doc (gateway routes ship in chart).
+4. Helm: `--set services.email-connector.enabled=true` only — chart injects peer `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` and email nginx blocks; do not use `servicesEnv` for those URLs.
 5. Configure Admin → Channels → Email; connector env needs `DATABASE_URL?schema=email`, `ORCHESTRATOR_URL`, `IDENTITY_SERVICE_URL`, `INTERNAL_SERVICE_TOKEN` (not `RELOOP_*` in production `.env`).
 6. Verify: `/internal/status`, `/internal/test-connection`, API provision → bind smoke per doc.
 
