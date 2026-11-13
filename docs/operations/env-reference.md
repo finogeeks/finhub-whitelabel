@@ -78,6 +78,34 @@ Missing or invalid license → identity-service refuses to start.
 | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | No | Notify floor: `info`, `warning`, or `critical` (default `warning`; invalid or empty → `warning`) — see [finops-notifications](./finops-notifications.md) |
 | Channel URLs/passwords | Yes | See [finops-notifications](./finops-notifications.md) — **not** minted by gen-secrets except optional HMAC secret above |
 
+## Optional email channel (Reloop)
+
+Off by default (Compose `email` profile on `docker-compose.prod.yml`; Helm `services.email-connector.enabled: false`). Full deploy: [email channel](./email-channel.md).
+
+**email-connector** container:
+
+| Variable | Secret | Required |
+|----------|--------|----------|
+| `DATABASE_URL` | Yes | Yes (`?schema=email`) |
+| `PORT` | No | Default `26464` |
+| `ORCHESTRATOR_URL` | No | Yes |
+| `IDENTITY_SERVICE_URL` | No | Yes |
+| `INTERNAL_SERVICE_TOKEN` | Yes | Yes (auto-generated above) |
+| `EMAIL_CONNECTOR_TENANT_ID` | No | Optional |
+
+Dev-only on connector (production uses Admin): `RELOOP_*`, `EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`, `EMAIL_CONNECTOR_*` aliases.
+
+**Peers** (orchestrator does **not** take `EMAIL_CONNECTOR_URL`):
+
+| Service | Variable | Compose | Helm |
+|---------|----------|---------|------|
+| identity-service | `EMAIL_CONNECTOR_URL` | Operator sets `http://chatkit-email-connector:26464` in `.env`; restart service | Chart injects `http://email-connector:26464` when `services.email-connector.enabled: true`; omitted when false |
+| delivery | `EMAIL_CONNECTOR_URL`, optional `CONFIG_EMAIL_CONNECTOR_URL` | Operator sets in `.env`; restart service | Chart injects both URLs when connector enabled; omitted when false |
+
+Do **not** set peer `EMAIL_CONNECTOR_*` in Helm `servicesEnv` — the chart owns those when the connector is enabled.
+
+**Admin** → Channels → Email: `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, `api_base_url` (masked on GET/PUT).
+
 ## finops-staff documented defaults (customer posture)
 
 Keep these in `.env` when enabling finops-staff:

@@ -16,7 +16,7 @@
 
 地端部署：除非公開註冊需要 Cloudflare Turnstile，否則**不要**設定 `TURNSTILE_*`。見[環境變數參考](./operations/env-reference.zh-TW.md)。
 
-選用：Identity OAuth、finops-staff、監控（自建或重用 Prometheus 堆疊）、Turnstile、Slack — 均為 **opt-in**。監控接線見 [`docs/operations/monitoring.zh-TW.md`](./operations/monitoring.zh-TW.md)、[`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md)。
+選用：Identity OAuth、finops-staff、**Reloop 郵件渠道**、監控（自建或重用 Prometheus 堆疊）、Turnstile、Slack — 均為 **opt-in**。監控接線見 [`docs/operations/monitoring.zh-TW.md`](./operations/monitoring.zh-TW.md)、[`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md)。郵件見 [`docs/operations/email-channel.zh-TW.md`](./operations/email-channel.zh-TW.md)。
 
 ## 階段 A — 發佈套件執行環境（在 tarball 目錄內）
 
@@ -54,6 +54,10 @@ docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profil
 ```
 
 Helm：`finopsStaff.enabled=true`，在 SecAI 核准前保持 `finopsStaff.policyMode=readonly`。見 [finops-staff](./operations/finops-staff.zh-TW.md)。
+
+## 階段 C.5 — 郵件渠道（選用）
+
+選用 Reloop 智能體郵件；**預設關閉**。自建 Reloop；在 Reloop 主控台手動註冊 Webhook。**Compose：** `email` profile + `.env` 對端 URL，重啟 identity-service 與 delivery（connector 未執行前郵件路徑 502）。**Helm：** 僅 `--set services.email-connector.enabled=true`（chart 接線對等服務與 nginx；關閉時不渲染路由）。見 [郵件渠道](./operations/email-channel.zh-TW.md)。
 
 ## 階段 D — 冒煙
 

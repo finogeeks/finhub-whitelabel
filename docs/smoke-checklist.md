@@ -39,6 +39,13 @@ Run after Phase 1 (default stack) and Phase 2 (white-label overlays) from [`skil
 - [ ] Compare product name, logo/mark, login hero copy, auth titles, and theme colors against `artifacts/brand-preview/login-preview-*.png`.
 - [ ] Treat differences in layout, fonts, or optional chrome as expected unless branding seed or assets are wrong — preview is labelled **approximate** ([`docs/brand-preview.md`](./brand-preview.md)).
 
+## Email channel (only if Reloop connector enabled)
+
+- [ ] `email-connector` healthy (`GET /internal/health` on port `26464` or release doctor).
+- [ ] Admin → Channels → Email saved; `POST /internal/test-connection` succeeds (service token).
+- [ ] Status shows `transport_ready` and `domain_verified` (and `webhook_configured` when wired).
+- [ ] API smoke: provision → bind → inbound mail updates `last_inbound_at` (see [email channel](./operations/email-channel.md)).
+
 ## OAuth (only if Phase 1.5 ran)
 
 - [ ] `OAUTH_PROVIDER_ENABLED=true` and issuer URLs match your host.

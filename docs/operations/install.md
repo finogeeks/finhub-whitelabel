@@ -81,6 +81,7 @@ Use only for engineering checkouts, drill bundles, or dogfood when the operator 
 - White-label overlays: [`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md)
 - Smoke: [`docs/smoke-checklist.md`](../smoke-checklist.md)
 - Optional FinOps: [finops-staff](./finops-staff.md)
+- Optional email (Reloop): [email channel](./email-channel.md)
 
 ## Smoke (API)
 

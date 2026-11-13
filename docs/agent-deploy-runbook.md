@@ -16,7 +16,7 @@ End-to-end path for operators and coding agents: bring up a **licensed** FinHub 
 
 On-prem: leave **Turnstile** (`TURNSTILE_*`) unset unless internet-facing signup needs Cloudflare Turnstile. See [Environment reference](./operations/env-reference.md).
 
-Optional later: Identity OAuth, finops-staff, monitoring (Prometheus stack or reuse), Turnstile, Slack webhooks — all **opt-in**. Monitoring wiring: [`docs/operations/monitoring.md`](./operations/monitoring.md), [`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md).
+Optional later: Identity OAuth, finops-staff, **Reloop email channel**, monitoring (Prometheus stack or reuse), Turnstile, Slack webhooks — all **opt-in**. Monitoring wiring: [`docs/operations/monitoring.md`](./operations/monitoring.md), [`skills/finhub-monitoring/SKILL.md`](../skills/finhub-monitoring/SKILL.md). Email: [`docs/operations/email-channel.md`](./operations/email-channel.md).
 
 ## Phase A — Release runtime (in tarball tree)
 
@@ -54,6 +54,10 @@ docker compose -f docker-compose.yml -f docker-compose.finops-staff.yml --profil
 ```
 
 Helm: `finopsStaff.enabled=true` with `finopsStaff.policyMode=readonly` until SecAI approves `supervised`. See [finops-staff](./operations/finops-staff.md).
+
+## Phase C.5 — Email channel (opt-in)
+
+Optional Reloop agent mail; **disabled** by default. Self-host Reloop; register webhook in Reloop’s UI. **Compose:** `email` profile + peer URLs in `.env`, restart identity-service and delivery (gateway 502 on email paths until connector runs). **Helm:** `--set services.email-connector.enabled=true` only — chart wires peers and nginx (routes omitted when off). See [email channel](./operations/email-channel.md).
 
 ## Phase D — Smoke
 

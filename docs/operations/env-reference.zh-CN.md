@@ -78,6 +78,34 @@
 | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | 否 | 通知门槛：`info`、`warning` 或 `critical`（默认 `warning`；无效或空 → `warning`）— 见 [finops-notifications](./finops-notifications.zh-CN.md) |
 | 各通道 URL/密码 | 是 | 见 [finops-notifications](./finops-notifications.zh-CN.md) — 除上文 HMAC 外不由 gen-secrets 生成 |
 
+## 可选邮件渠道（Reloop）
+
+默认关闭（Compose：`docker-compose.prod.yml` 的 `email` profile；Helm：`services.email-connector.enabled: false`）。完整部署见 [邮件渠道](./email-channel.zh-CN.md)。
+
+**email-connector** 容器：
+
+| 变量 | 密钥？ | 必填 |
+|------|--------|------|
+| `DATABASE_URL` | 是 | 是（`?schema=email`） |
+| `PORT` | 否 | 默认 `26464` |
+| `ORCHESTRATOR_URL` | 否 | 是 |
+| `IDENTITY_SERVICE_URL` | 否 | 是 |
+| `INTERNAL_SERVICE_TOKEN` | 是 | 是（上文自动生成） |
+| `EMAIL_CONNECTOR_TENANT_ID` | 否 | 可选 |
+
+connector 上仅 dev：`RELOOP_*`、`EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`、`EMAIL_CONNECTOR_*` 别名（生产用 Admin）。
+
+**对等服务**（**orchestrator 不设** `EMAIL_CONNECTOR_URL`）：
+
+| 服务 | 变量 | Compose | Helm |
+|------|------|---------|------|
+| identity-service | `EMAIL_CONNECTOR_URL` | 运维在 `.env` 设 `http://chatkit-email-connector:26464`；重启服务 | `services.email-connector.enabled: true` 时 chart 注入 `http://email-connector:26464`；关闭时省略 |
+| delivery | `EMAIL_CONNECTOR_URL`、可选 `CONFIG_EMAIL_CONNECTOR_URL` | 运维在 `.env` 设置；重启服务 | connector 启用时 chart 注入两 URL；关闭时省略 |
+
+**勿**在 Helm `servicesEnv` 中手工设置对端 `EMAIL_CONNECTOR_*` — 由 chart 在启用 connector 时写入。
+
+**Admin** → 渠道 → 邮件：`reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url`（GET/PUT 脱敏）。
+
 ## finops-staff 文档默认（客户姿态）
 
 启用 finops-staff 时建议在 `.env` 保持：

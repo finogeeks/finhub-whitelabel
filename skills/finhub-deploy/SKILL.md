@@ -261,6 +261,27 @@ Run when the default stack is healthy and the operator wants this fork's brandin
 
 ---
 
+## Phase 1.7 — Email channel (opt-in only)
+
+Optional **Reloop** agent mail via **email-connector**; default **off** (Compose `email` profile; Helm `services.email-connector.enabled: false`). Not on the web chat path.
+
+1. Docs: [`docs/operations/email-channel.md`](../../docs/operations/email-channel.md).
+2. **Production:** self-host Reloop; register inbound webhook **manually in Reloop’s UI**; do not use Reloop Cloud (`api_base_url` empty is demo-only).
+3. Compose image: `${CHATKIT_REGISTRY}/email-connector:${CHATKIT_VERSION}` (offline: `local/chatkit/email-connector:${VERSION}`).
+
+   ```bash
+   export EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+   export CONFIG_EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+   docker compose -f docker-compose.prod.yml --profile email up -d email-connector
+   # restart identity-service and delivery
+   ```
+
+4. Helm: `--set services.email-connector.enabled=true` only — chart injects peer `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` and email nginx blocks; do not use `servicesEnv` for those URLs.
+5. Configure Admin → Channels → Email; connector env needs `DATABASE_URL?schema=email`, `ORCHESTRATOR_URL`, `IDENTITY_SERVICE_URL`, `INTERNAL_SERVICE_TOKEN` (not `RELOOP_*` in production `.env`).
+6. Verify: `/internal/status`, `/internal/test-connection`, API provision → bind smoke per doc.
+
+Do **not** enable for customers without Reloop self-host and verified DNS. **Orchestrator does not use `EMAIL_CONNECTOR_URL`.**
+
 ## Phase 1.6 — finops-staff (opt-in only)
 
 Optional alert diagnose + **human-approved** repairs; **not** on the chat path. Default **off**.
@@ -410,6 +431,6 @@ Kubernetes: `helm uninstall` per release docs; delete PVCs only with operator ap
 - Secret **names** filled vs still missing (never values).
 - License and LLM keys: operator-supplied yes/no only.
 - Compose/helm files used; white-label overlay paths.
-- OAuth / finops-staff: enabled or explicitly skipped.
+- OAuth / finops-staff / email channel: enabled or explicitly skipped.
 - Smoke results per [`docs/smoke-checklist.md`](../../docs/smoke-checklist.md).
 - Blockers (unhealthy services, failed PUT, failed persona dry-run).
