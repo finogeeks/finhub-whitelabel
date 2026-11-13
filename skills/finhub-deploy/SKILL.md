@@ -261,6 +261,19 @@ Run when the default stack is healthy and the operator wants this fork's brandin
 
 ---
 
+## Phase 1.7 — Email channel (opt-in only)
+
+Optional **Reloop** agent mail via **email-connector**; default **off** (`email` profile / `emailConnector.enabled: false`). Not on the web chat path.
+
+1. Docs: [`docs/operations/email-channel.md`](../../docs/operations/email-channel.md).
+2. **Production:** self-host Reloop; do not rely on Reloop Cloud (`api_base_url` empty is demo-only).
+3. Compose: release `docker compose ... --profile email up -d` (reconcile `<!-- TODO(packaging): ... -->` in the doc with your bundle).
+4. Helm: `emailConnector.enabled=true`; expose `/webhooks/reloop` on the gateway.
+5. Set `EMAIL_CONNECTOR_URL` when outbound email from core is required; configure Admin → Channels → Email (`reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, optional `api_base_url`).
+6. Verify: `/internal/status`, `/internal/test-connection`, API provision → bind smoke per doc.
+
+Do **not** enable for customers without Reloop self-host and verified DNS.
+
 ## Phase 1.6 — finops-staff (opt-in only)
 
 Optional alert diagnose + **human-approved** repairs; **not** on the chat path. Default **off**.
@@ -410,6 +423,6 @@ Kubernetes: `helm uninstall` per release docs; delete PVCs only with operator ap
 - Secret **names** filled vs still missing (never values).
 - License and LLM keys: operator-supplied yes/no only.
 - Compose/helm files used; white-label overlay paths.
-- OAuth / finops-staff: enabled or explicitly skipped.
+- OAuth / finops-staff / email channel: enabled or explicitly skipped.
 - Smoke results per [`docs/smoke-checklist.md`](../../docs/smoke-checklist.md).
 - Blockers (unhealthy services, failed PUT, failed persona dry-run).

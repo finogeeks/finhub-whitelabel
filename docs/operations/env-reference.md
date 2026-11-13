@@ -78,6 +78,19 @@ Missing or invalid license → identity-service refuses to start.
 | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | No | Notify floor: `info`, `warning`, or `critical` (default `warning`; invalid or empty → `warning`) — see [finops-notifications](./finops-notifications.md) |
 | Channel URLs/passwords | Yes | See [finops-notifications](./finops-notifications.md) — **not** minted by gen-secrets except optional HMAC secret above |
 
+## Optional email channel (Reloop)
+
+Off by default (`email` compose profile / `emailConnector.enabled: false`). Full deploy: [email channel](./email-channel.md).
+
+| Variable | Secret | Who sets | Notes |
+|----------|--------|----------|-------|
+| `EMAIL_CONNECTOR_URL` | No | Operator | Enables core → connector outbound fan-out when set |
+| `CONFIG_EMAIL_CONNECTOR_URL` | No | Operator | Config-service hook when release documents it |
+| Connector DB DSN | Yes | Release / operator | Key name in release `.env.example` (schema `email`) |
+| `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, `api_base_url` | Yes (keys/secrets) | **Admin** → Channels → Email | Tenant channel `email`; masked on GET/PUT |
+
+`INTERNAL_SERVICE_TOKEN` (auto-generated above) secures connector `/internal/*`. Reloop tenant secrets are **not** in `.env` — Admin only.
+
 ## finops-staff documented defaults (customer posture)
 
 Keep these in `.env` when enabling finops-staff:

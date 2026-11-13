@@ -81,6 +81,7 @@ FLEET_SKIP_PREFLIGHT=1 ./scripts/fleet.sh up -d
 - 白標：[`skills/finhub-deploy/SKILL.md`](../../skills/finhub-deploy/SKILL.md)
 - 冒煙：[`docs/smoke-checklist.md`](../smoke-checklist.zh-TW.md)
 - 選用 FinOps：[finops-staff](./finops-staff.zh-TW.md)
+- 選用郵件（Reloop）：[郵件渠道](./email-channel.zh-TW.md)
 
 ## 冒煙（API）
 

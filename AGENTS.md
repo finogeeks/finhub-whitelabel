@@ -16,6 +16,7 @@ This repository is the **customer-facing** documentation and artifact template f
 | 2 | [`docs/agent-deploy-runbook.md`](./docs/agent-deploy-runbook.md) | Full path: release unpack → env bootstrap → fleet → doctor → smoke |
 | 3 | [`docs/operations/install.md`](./docs/operations/install.md) | First-time install and first `fleet.sh up` |
 | 4 | [`docs/operations/env-reference.md`](./docs/operations/env-reference.md) | Auto-generated vs human-supplied `.env` keys |
+| 4b | [`docs/operations/email-channel.md`](./docs/operations/email-channel.md) | Optional Reloop email channel (off by default) |
 | 5 | [`docs/operations/monitoring.md`](./docs/operations/monitoring.md) | Optional Prometheus / Alertmanager / Grafana (reuse or deploy) |
 | 6 | [`skills/finhub-monitoring/SKILL.md`](./skills/finhub-monitoring/SKILL.md) | Agent workflow: scrape, rules, Alertmanager → finops-staff |
 | 7 | [`docs/operations/finops-staff.md`](./docs/operations/finops-staff.md) | Optional supervised self-heal (off by default) |

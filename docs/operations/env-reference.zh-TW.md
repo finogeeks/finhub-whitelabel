@@ -78,6 +78,19 @@
 | `FINOPS_STAFF_NOTIFY_MIN_SEVERITY` | 否 | 通知門檻：`info`、`warning` 或 `critical`（預設 `warning`；無效或空 → `warning`）— 見 [finops-notifications](./finops-notifications.zh-TW.md) |
 | 各通道 URL/密碼 | 是 | 見 [finops-notifications](./finops-notifications.zh-TW.md) — 除上文 HMAC 外不由 gen-secrets 產生 |
 
+## 選用郵件渠道（Reloop）
+
+預設關閉（`email` compose profile / `emailConnector.enabled: false`）。完整部署見 [郵件渠道](./email-channel.zh-TW.md)。
+
+| 變數 | 密鑰？ | 誰設定 | 說明 |
+|------|--------|--------|------|
+| `EMAIL_CONNECTOR_URL` | 否 | 維運 | 設定後核心服務可向 connector 外寄 |
+| `CONFIG_EMAIL_CONNECTOR_URL` | 否 | 維運 | 發佈包文件中的設定服務 URL |
+| Connector DB DSN | 是 | 發佈包 / 維運 | 鍵名見發佈包 `.env.example`（schema `email`） |
+| `reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url` | 是（密鑰/機密） | **Admin** → 渠道 → 郵件 | 租戶渠道 `email`；GET/PUT 遮罩 |
+
+`INTERNAL_SERVICE_TOKEN`（上文自動產生）保護 connector `/internal/*`。Reloop 租戶機密 **不在** `.env`，僅 Admin。
+
 ## finops-staff 文件預設（客戶姿態）
 
 啟用 finops-staff 時建議在 `.env` 保持：

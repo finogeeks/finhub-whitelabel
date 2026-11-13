@@ -26,6 +26,13 @@
 
 - [ ] `./scripts/validate-artifacts.sh` 在 fork 上結束代碼為 0。
 
+## 郵件渠道（僅當啟用 Reloop connector）
+
+- [ ] `email-connector` 健康（埠 `26464` 上 `GET /internal/health` 或發佈包 doctor）。
+- [ ] Admin → 渠道 → 郵件已儲存；`POST /internal/test-connection` 成功（服務權杖）。
+- [ ] 狀態含 `transport_ready`、`domain_verified`（Webhook 就緒時含 `webhook_configured`）。
+- [ ] API 冒煙：provision → bind → 入站郵件更新 `last_inbound_at`（見 [郵件渠道](./operations/email-channel.zh-TW.md)）。
+
 ## OAuth（僅當執行了 Phase 1.5）
 
 - [ ] `OAUTH_PROVIDER_ENABLED=true` 且 issuer URL 與主機一致。
