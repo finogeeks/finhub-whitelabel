@@ -57,7 +57,7 @@ Helm：`finopsStaff.enabled=true`，在 SecAI 核准前保持 `finopsStaff.polic
 
 ## 階段 C.5 — 郵件渠道（選用）
 
-選用 Reloop 智能體郵件；**預設關閉**。生產環境自建 Reloop；啟用 compose `email` profile 或 Helm `emailConnector.enabled=true`；設定 Admin → 渠道 → 郵件。見 [郵件渠道](./operations/email-channel.zh-TW.md)。
+選用 Reloop 智能體郵件；**預設關閉**。自建 Reloop；在 Reloop 主控台手動註冊 Webhook；`docker compose -f docker-compose.prod.yml --profile email up -d email-connector`，於 **identity-service** 與 **delivery** 設定 `EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464` 後重啟二者。Helm 見 [郵件渠道](./operations/email-channel.zh-TW.md)。閘道 nginx 路由已隨包提供（connector 未執行時為 502）。
 
 ## 階段 D — 冒煙
 

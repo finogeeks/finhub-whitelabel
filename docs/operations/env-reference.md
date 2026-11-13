@@ -80,16 +80,29 @@ Missing or invalid license → identity-service refuses to start.
 
 ## Optional email channel (Reloop)
 
-Off by default (`email` compose profile / `emailConnector.enabled: false`). Full deploy: [email channel](./email-channel.md).
+Off by default (`email` profile on `docker-compose.prod.yml` / `emailConnector.enabled: false`). Full deploy: [email channel](./email-channel.md).
 
-| Variable | Secret | Who sets | Notes |
-|----------|--------|----------|-------|
-| `EMAIL_CONNECTOR_URL` | No | Operator | Enables core → connector outbound fan-out when set |
-| `CONFIG_EMAIL_CONNECTOR_URL` | No | Operator | Config-service hook when release documents it |
-| Connector DB DSN | Yes | Release / operator | Key name in release `.env.example` (schema `email`) |
-| `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, `api_base_url` | Yes (keys/secrets) | **Admin** → Channels → Email | Tenant channel `email`; masked on GET/PUT |
+**email-connector** container:
 
-`INTERNAL_SERVICE_TOKEN` (auto-generated above) secures connector `/internal/*`. Reloop tenant secrets are **not** in `.env` — Admin only.
+| Variable | Secret | Required |
+|----------|--------|----------|
+| `DATABASE_URL` | Yes | Yes (`?schema=email`) |
+| `PORT` | No | Default `26464` |
+| `ORCHESTRATOR_URL` | No | Yes |
+| `IDENTITY_SERVICE_URL` | No | Yes |
+| `INTERNAL_SERVICE_TOKEN` | Yes | Yes (auto-generated above) |
+| `EMAIL_CONNECTOR_TENANT_ID` | No | Optional |
+
+Dev-only on connector (production uses Admin): `RELOOP_*`, `EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`, `EMAIL_CONNECTOR_*` aliases.
+
+**Peers** (orchestrator does **not** take `EMAIL_CONNECTOR_URL`):
+
+| Service | Variable | Notes |
+|---------|----------|-------|
+| identity-service | `EMAIL_CONNECTOR_URL` | Compose: `http://chatkit-email-connector:26464`; Helm: `http://email-connector:26464` |
+| delivery | `EMAIL_CONNECTOR_URL`, optional `CONFIG_EMAIL_CONNECTOR_URL` | Outbound fan-out; restart after change |
+
+**Admin** → Channels → Email: `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, `api_base_url` (masked on GET/PUT).
 
 ## finops-staff documented defaults (customer posture)
 

@@ -4,11 +4,9 @@
 
 FinHub can deliver **agent email** over a platform-managed transport: one **verified sending domain** shared by the deployment, with a **Reloop mailbox** provisioned per `(tenant, user, agent)` tuple. **Bind model A** applies: at most **one sender address bound per tenant** at a time.
 
-The **email-connector** service is **optional** and **off by default**. Stopping it does **not** stop web chat. Outbound email from other platform paths fans out to the connector only when `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` is set.
+The **email-connector** service is **optional** and **off by default**. Stopping it does **not** stop web chat. **delivery** sends outbound email through the connector when `EMAIL_CONNECTOR_URL` and (optionally) `CONFIG_EMAIL_CONNECTOR_URL` are set; **identity-service** uses `EMAIL_CONNECTOR_URL` for Admin test-connection/status. The orchestrator does **not** use `EMAIL_CONNECTOR_URL`.
 
 **Production:** run **Reloop self-hosted** on your network. **Reloop Cloud** is for **demo/lab only** (tenant leaves `api_base_url` empty in Admin). This guide does not cover v1 **BYO Gmail/IMAP**, **agentmail.to**, or **per-tenant custom domains**.
-
-Exact compose service names, image tags, and Helm keys ship in your **offline release**; reconcile any `<!-- TODO(packaging): ... -->` markers when your bundle version includes email packaging.
 
 ## Architecture
 
@@ -60,7 +58,7 @@ flowchart TB
 | Requirement | Notes |
 |-------------|--------|
 | FinHub core stack healthy | [`install.md`](./install.md) → `doctor.sh` clean |
-| Postgres reachable by connector | Release wires convstore / platform DB URL |
+| Postgres `DATABASE_URL` with `?schema=email` | Required on **email-connector** (see env table) |
 | **Reloop self-host** | Production MTA + API; not Reloop Cloud |
 | Verified **platform domain** | DNS per Reloop docs; obtain `domain_id` from Reloop admin/API |
 | Public **HTTPS** gateway | Webhook URL `https://<gateway-host>/webhooks/reloop` with valid TLS |
@@ -72,7 +70,7 @@ flowchart TB
 2. Create an API key with prefix `rl_…` for FinHub (store in vault; configure in Admin only).
 3. Register the **same verified domain** you will set as `agent_mailbox_domain` in Admin.
 4. Complete Reloop **domain verification**; record **`domain_id`** for Admin channel config.
-5. Configure Reloop to POST inbound events to:
+5. In **Reloop’s UI**, register the inbound webhook URL (not automated by FinHub):
 
    `https://<gateway-host>/webhooks/reloop`
 
@@ -102,60 +100,103 @@ After DNS propagates, confirm in Reloop UI/API that the domain is **verified** a
 | `/internal/status`, `/reload`, `/test-connection`, `/send-outbound`, `/provision`, `/bind` | Internal only | `INTERNAL_SERVICE_TOKEN` |
 | `/api/email/*` | Via gateway as documented | User **Bearer** JWT |
 
-Gateway must route `/webhooks/reloop` to **email-connector** listener **26464** without stripping headers required for HMAC verification.
+The shipped **API gateway (nginx)** in `docker-compose.prod.yml` and the release Helm chart already routes:
 
-<!-- TODO(packaging): confirm nginx location block and upstream service name in release `docker-compose.prod.yml` / Helm ingress templates. -->
+- `POST /webhooks/reloop`
+- `GET /api/email/bind/state`, `POST /api/email/bind`, `POST /api/email/provision`, `GET /api/email/status`
+
+Traffic uses a variable upstream and resolver to **email-connector** on port **26464**. **Do not add custom nginx config** — operators only enable the connector service. The gateway starts even when the connector is off; these routes return **502** until `email-connector` is running.
+
+Preserve request bodies and headers Reloop needs for HMAC verification.
 
 **TLS:** terminate HTTPS at your ingress; Reloop webhooks must reach the public URL with a certificate chain clients trust.
+
+## Images
+
+| Context | Image reference |
+|---------|-----------------|
+| Production compose | `${CHATKIT_REGISTRY}/email-connector:${CHATKIT_VERSION}` |
+| Offline bundle (after `load-images.sh`) | `local/chatkit/email-connector:${VERSION}` — included in bundle image list |
+| GHCR (reference) | `ghcr.io/finogeeks/chatkit/email-connector:<version>` |
+
+Compose: **service** `email-connector`, **container** `chatkit-email-connector`, **profile** `email`, defined in **`docker-compose.prod.yml`** (no separate compose overlay).
 
 ## Enable the connector
 
 ### Docker Compose
 
-Default posture: **disabled**. When your release ships the `email` profile:
-
-<!-- TODO(packaging): confirm email-connector image repository/tag in CHATKIT_REGISTRY and `load-images.sh` manifest. -->
-
-<!-- TODO(packaging): confirm exact compose invocation from release README, e.g. `docker compose -f docker-compose.prod.yml --profile email up -d email-connector`. -->
-
-<!-- TODO(packaging): insert documented `-f` overlay file name if the release ships one beside docker-compose.prod.yml. -->
+Default posture: **disabled**. Enable the `email` profile on the production compose file:
 
 ```bash
-# Example — verify against your release README before production
-docker compose -f docker-compose.prod.yml \
-  --profile email \
-  up -d email-connector
+export EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+export CONFIG_EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+docker compose -f docker-compose.prod.yml --profile email up -d email-connector
+# then restart identity-service and delivery so they pick up the URL
 ```
 
-<!-- TODO(packaging): confirm compose service name (placeholder above: `email-connector`) and profile name (`email`). -->
-
-Set platform env so core services can reach the connector (see table below). Restart affected services after enabling outbound.
+Persist `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` in `.env` (or your release’s documented env mechanism) before restarting **identity-service** and **delivery**.
 
 ### Helm
 
-<!-- TODO(packaging): confirm chart value path, e.g. `emailConnector.enabled: true` and secret/env key names in values schema. -->
+```yaml
+emailConnector:
+  enabled: true
+services:
+  email-connector:
+    enabled: true
+servicesEnv:
+  identity-service:
+    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+  delivery:
+    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+    CONFIG_EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+```
 
 ```bash
 helm upgrade --install <release> <chart-path> \
   -f deploy/helm/values-whitelabel.yaml \
-  --set emailConnector.enabled=true
+  --set emailConnector.enabled=true \
+  --set services.email-connector.enabled=true
 ```
 
-Ensure ingress exposes `/webhooks/reloop` to the connector Service port **26464**.
+Gateway ingress for the email routes is already in the chart; no extra ingress snippets required.
 
 ## Environment and secrets
 
-| Variable | Secret | Who sets | Notes |
+### email-connector container
+
+| Variable | Secret | Required | Notes |
 |----------|--------|----------|-------|
-| `INTERNAL_SERVICE_TOKEN` | Yes | `gen-secrets.sh` / operator | Required for `/internal/*`; rotate with release procedure |
-| `EMAIL_CONNECTOR_URL` | No | Operator | Base URL for core → connector outbound fan-out (e.g. `http://email-connector:26464`) |
-| `CONFIG_EMAIL_CONNECTOR_URL` | No | Operator | Alternate/config service hook when release documents it |
-| `DATABASE_URL` / convstore DSN | Yes | Release / operator | Connector needs schema `email`; exact key in release `.env.example` |
-| `reloop_api_key` | Yes | **Admin** → Channels → Email | Masked on GET/PUT; prefix `rl_…` |
-| `webhook_secret` | Yes | **Admin** | HMAC for `/webhooks/reloop`; masked in Admin API |
-| `domain_id` | No | **Admin** | From Reloop after verification |
-| `agent_mailbox_domain` | No | **Admin** | Platform shared verified domain |
-| `api_base_url` | No | **Admin** (optional) | Set for self-host Reloop API; **empty** → Reloop Cloud (demo only) |
+| `DATABASE_URL` | Yes | Yes | Postgres DSN with `?schema=email` |
+| `PORT` | No | No (default **26464**) | Listener port |
+| `ORCHESTRATOR_URL` | No | Yes | Upstream orchestrator base URL |
+| `IDENTITY_SERVICE_URL` | No | Yes | Identity service base URL |
+| `INTERNAL_SERVICE_TOKEN` | Yes | Yes | Same fleet token as other services; `/internal/*` |
+| `EMAIL_CONNECTOR_TENANT_ID` | No | No | Optional single-tenant filter |
+
+**Dev/lab fallbacks only** (production uses Admin channel fields instead — do not set in customer `.env`):
+
+`RELOOP_API_KEY`, `RELOOP_WEBHOOK_SECRET`, `RELOOP_DOMAIN_ID`, `RELOOP_API_BASE_URL`, `EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`, and documented `EMAIL_CONNECTOR_*` aliases.
+
+### Peer services
+
+| Service | Variable | Secret | Purpose |
+|---------|----------|--------|---------|
+| **identity-service** | `EMAIL_CONNECTOR_URL` | No | Admin test-connection / status |
+| **delivery** | `EMAIL_CONNECTOR_URL` | No | Outbound email to connector |
+| **delivery** | `CONFIG_EMAIL_CONNECTOR_URL` | No | Optional; same hook when release wires config fan-out |
+
+Compose peer URLs use Docker DNS **`http://chatkit-email-connector:26464`**. Helm uses **`http://email-connector:26464`**. The orchestrator is **not** configured with `EMAIL_CONNECTOR_URL`.
+
+### Admin → Channels → Email (production Reloop)
+
+| Field | Secret | Notes |
+|-------|--------|-------|
+| `reloop_api_key` | Yes | Masked on GET/PUT; prefix `rl_…` |
+| `webhook_secret` | Yes | HMAC for `/webhooks/reloop`; masked in Admin API |
+| `domain_id` | No | From Reloop after verification |
+| `agent_mailbox_domain` | No | Platform shared verified domain |
+| `api_base_url` | No | Self-host Reloop API root; **empty** → Reloop Cloud (demo only) |
 
 Tenant channel fields persist in **SiteChannelsConfig** (`channel` id `email`). Saving in Admin triggers `POST /internal/reload` on the connector.
 
@@ -164,7 +205,7 @@ Tenant channel fields persist in **SiteChannelsConfig** (`channel` id `email`). 
 | Step | Action |
 |------|--------|
 | **A. Enable runtime** | Bring up `email-connector` (compose profile or Helm) and set `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` if outbound email is required. |
-| **B. Reloop** | Self-host Reloop; create `rl_…` API key; configure webhook URL and signing secret. |
+| **B. Reloop** | Self-host Reloop; create `rl_…` API key; **manually** register webhook URL and signing secret in Reloop’s UI. |
 | **C. DNS** | Publish MX/SPF/DKIM/verification; wait for Reloop domain verified; copy `domain_id`. |
 | **D. Admin → Channels → Email** | Enter `reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, and `api_base_url` (self-host API root). Save (reloads connector). |
 | **E. Verify** | Run internal status and test-connection (below); complete bind/provision smoke via API. |
@@ -179,7 +220,7 @@ Query connector internal status (service token):
 
 ```bash
 curl -sS -H "Authorization: Bearer <INTERNAL_SERVICE_TOKEN>" \
-  http://email-connector:26464/internal/status
+  http://chatkit-email-connector:26464/internal/status
 ```
 
 Interpret typical flags:
@@ -195,7 +236,7 @@ Interpret typical flags:
 
 ```bash
 curl -sS -X POST -H "Authorization: Bearer <INTERNAL_SERVICE_TOKEN>" \
-  http://email-connector:26464/internal/test-connection
+  http://chatkit-email-connector:26464/internal/test-connection
 ```
 
 ### End-to-end (API only — no shipped bind UI)
@@ -238,7 +279,7 @@ curl -sS -H "Authorization: Bearer <USER_ACCESS_TOKEN>" \
 
 **5. Inbound mail** — send email from an external mailbox to the provisioned address; confirm `last_inbound_at` updates and the agent receives the thread per your product routing.
 
-**6. Outbound reply** — trigger agent reply on the email thread (product-specific); confirm delivery only when `EMAIL_CONNECTOR_URL` is set.
+**6. Outbound reply** — trigger agent reply on the email thread (product-specific); confirm **delivery** reaches the connector when `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` are set on **delivery** (and identity for admin paths).
 
 ## Monitoring and logs
 
@@ -267,17 +308,20 @@ Core chat remains available throughout.
 | `domain_verified: false` | DNS propagation; `domain_id` matches Reloop; `agent_mailbox_domain` spelling |
 | Webhook 401/403 | `webhook_secret` in Admin matches Reloop; gateway preserves body for HMAC |
 | No inbound | MX points to Reloop; Reloop webhook URL is public HTTPS; firewall allows Reloop → gateway |
-| Outbound never sends | `EMAIL_CONNECTOR_URL` unset in core; connector up; `transport_ready` true |
+| Gateway 502 on `/webhooks/reloop` or `/api/email/*` | Connector not running or profile/chart disabled — expected until `email-connector` is up |
+| Outbound never sends | `EMAIL_CONNECTOR_URL` unset on **delivery** / **identity-service**; restart after env change; `transport_ready` true |
 | Bind fails | One bind per tenant; consume fresh `bind_state`; user token valid |
 | Demo cloud in prod | Non-empty self-host `api_base_url` in Admin; block empty `api_base_url` in policy |
 
 ## Known limits (v1)
 
-- **Bind model A** only — platform-shared domain; not per-tenant custom domains.
+- **Bind model A** only — platform-shared domain; **per-tenant custom domains** not in v1.
 - **One** active sender bind per tenant.
-- **No** end-user bind UI — API + Admin only.
+- **No** end-user bind or provision UI — **HTTP API only** (plus Admin channel config).
+- **Reloop inbound webhook** must be registered **manually** in Reloop’s UI (FinHub does not auto-register).
+- **Reloop Cloud** (`api_base_url` empty) — **demo/lab only**; not for production.
 - **No** BYO Gmail/IMAP or agentmail.to.
-- Outbound from non-email features requires explicit connector URL wiring.
+- Outbound email is wired through **delivery** (`EMAIL_CONNECTOR_URL` / optional `CONFIG_EMAIL_CONNECTOR_URL`), not the orchestrator.
 
 ## Security notes
 

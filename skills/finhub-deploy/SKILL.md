@@ -263,16 +263,24 @@ Run when the default stack is healthy and the operator wants this fork's brandin
 
 ## Phase 1.7 — Email channel (opt-in only)
 
-Optional **Reloop** agent mail via **email-connector**; default **off** (`email` profile / `emailConnector.enabled: false`). Not on the web chat path.
+Optional **Reloop** agent mail via **email-connector**; default **off** (`email` profile on `docker-compose.prod.yml` / `emailConnector.enabled: false`). Not on the web chat path.
 
 1. Docs: [`docs/operations/email-channel.md`](../../docs/operations/email-channel.md).
-2. **Production:** self-host Reloop; do not rely on Reloop Cloud (`api_base_url` empty is demo-only).
-3. Compose: release `docker compose ... --profile email up -d` (reconcile `<!-- TODO(packaging): ... -->` in the doc with your bundle).
-4. Helm: `emailConnector.enabled=true`; expose `/webhooks/reloop` on the gateway.
-5. Set `EMAIL_CONNECTOR_URL` when outbound email from core is required; configure Admin → Channels → Email (`reloop_api_key`, `webhook_secret`, `domain_id`, `agent_mailbox_domain`, optional `api_base_url`).
+2. **Production:** self-host Reloop; register inbound webhook **manually in Reloop’s UI**; do not use Reloop Cloud (`api_base_url` empty is demo-only).
+3. Compose image: `${CHATKIT_REGISTRY}/email-connector:${CHATKIT_VERSION}` (offline: `local/chatkit/email-connector:${VERSION}`).
+
+   ```bash
+   export EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+   export CONFIG_EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+   docker compose -f docker-compose.prod.yml --profile email up -d email-connector
+   # restart identity-service and delivery
+   ```
+
+4. Helm: `emailConnector.enabled=true`, `services.email-connector.enabled=true`; set `servicesEnv.identity-service.EMAIL_CONNECTOR_URL` and `servicesEnv.delivery.*` per doc (gateway routes ship in chart).
+5. Configure Admin → Channels → Email; connector env needs `DATABASE_URL?schema=email`, `ORCHESTRATOR_URL`, `IDENTITY_SERVICE_URL`, `INTERNAL_SERVICE_TOKEN` (not `RELOOP_*` in production `.env`).
 6. Verify: `/internal/status`, `/internal/test-connection`, API provision → bind smoke per doc.
 
-Do **not** enable for customers without Reloop self-host and verified DNS.
+Do **not** enable for customers without Reloop self-host and verified DNS. **Orchestrator does not use `EMAIL_CONNECTOR_URL`.**
 
 ## Phase 1.6 — finops-staff (opt-in only)
 

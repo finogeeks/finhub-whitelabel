@@ -57,7 +57,7 @@ Helm: `finopsStaff.enabled=true` with `finopsStaff.policyMode=readonly` until Se
 
 ## Phase C.5 — Email channel (opt-in)
 
-Optional Reloop agent mail; **disabled** by default. Self-host Reloop in production; enable compose `email` profile or Helm `emailConnector.enabled=true`; configure Admin → Channels → Email. See [email channel](./operations/email-channel.md).
+Optional Reloop agent mail; **disabled** by default. Self-host Reloop; register webhook in Reloop’s UI; `docker compose -f docker-compose.prod.yml --profile email up -d email-connector` with `EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464` on **identity-service** and **delivery** (then restart those services). Helm: see [email channel](./operations/email-channel.md). Gateway nginx routes are pre-shipped (502 until connector runs).
 
 ## Phase D — Smoke
 

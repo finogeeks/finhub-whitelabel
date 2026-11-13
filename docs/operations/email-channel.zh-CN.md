@@ -4,11 +4,9 @@
 
 FinHub 可通过平台托管传输投递 **智能体邮件**：全站共用 **一个已验证发信域**，按 `(tenant, user, agent)` 三元组在 Reloop 上 **开通邮箱**。**绑定模型 A**：每个租户同时最多 **绑定一个发件地址**。
 
-**email-connector** 服务为 **可选**，**默认关闭**。停止该服务 **不会** 影响网页对话。仅当配置了 `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` 时，其它平台路径才会把外发邮件转发到 connector。
+**email-connector** 服务为 **可选**，**默认关闭**。停止该服务 **不会** 影响网页对话。**delivery** 在设置 `EMAIL_CONNECTOR_URL` 与（可选）`CONFIG_EMAIL_CONNECTOR_URL` 后经 connector 外发；**identity-service** 用 `EMAIL_CONNECTOR_URL` 做 Admin test-connection/status。**orchestrator 不使用** `EMAIL_CONNECTOR_URL`。
 
 **生产环境：** 在自有网络 **自建 Reloop**。**Reloop Cloud** 仅用于 **演示/实验**（Admin 中 `api_base_url` 留空）。本文不包含 v1 的 **自带 Gmail/IMAP**、**agentmail.to** 或 **每租户独立域名**。
-
-Compose 服务名、镜像 tag、Helm 键以 **离线发布包** 为准；发布包包含邮件打包后，请对照并消除文中的 `<!-- TODO(packaging): ... -->` 标记。
 
 ## 架构
 
@@ -60,7 +58,7 @@ flowchart TB
 | 要求 | 说明 |
 |------|------|
 | FinHub 核心栈健康 | [`install.zh-CN.md`](./install.zh-CN.md) → `doctor.sh` 通过 |
-| Postgres 可被 connector 访问 | 发布包配置 convstore / 平台 DSN |
+| Postgres `DATABASE_URL` 含 `?schema=email` | **email-connector** 必需（见环境表） |
 | **Reloop 自建** | 生产 MTA + API；非 Reloop Cloud |
 | 已验证 **平台域名** | 按 Reloop 文档配 DNS；从 Reloop 获取 `domain_id` |
 | 公网 **HTTPS** 网关 | Webhook `https://<gateway-host>/webhooks/reloop`，有效 TLS |
@@ -72,7 +70,7 @@ flowchart TB
 2. 为 FinHub 创建前缀 `rl_…` 的 API 密钥（存保险箱；仅在 Admin 配置）。
 3. 注册与 Admin 中 `agent_mailbox_domain` **相同** 的已验证域名。
 4. 完成 Reloop **域名验证**；记录 **`domain_id`** 供 Admin 渠道配置。
-5. 配置 Reloop 将入站事件 POST 到：
+5. 在 **Reloop 控制台** 中手动注册入站 Webhook URL（FinHub 不会自动注册）：
 
    `https://<gateway-host>/webhooks/reloop`
 
@@ -102,60 +100,103 @@ DNS 生效后，在 Reloop UI/API 确认域名 **已验证**，记下 **`domain_
 | `/internal/status`、`/reload`、`/test-connection`、`/send-outbound`、`/provision`、`/bind` | 仅内网 | `INTERNAL_SERVICE_TOKEN` |
 | `/api/email/*` | 经网关 | 用户 **Bearer** JWT |
 
-网关须将 `/webhooks/reloop` 转到 **email-connector** **26464**，且勿剥离 HMAC 所需头/正文。
+随 **`docker-compose.prod.yml`** 与发布 Helm chart 自带的 **API 网关（nginx）** 已路由：
 
-<!-- TODO(packaging): confirm nginx location block and upstream service name in release `docker-compose.prod.yml` / Helm ingress templates. -->
+- `POST /webhooks/reloop`
+- `GET /api/email/bind/state`、`POST /api/email/bind`、`POST /api/email/provision`、`GET /api/email/status`
+
+流量经 variable upstream 与 resolver 转到 **email-connector** 端口 **26464**。**勿自行添加 nginx 配置** — 运维仅需启用 connector 服务。网关可在 connector 未启动时照常启动；上述路由在 connector 未运行时会返回 **502**。
+
+保留 Reloop HMAC 校验所需的请求头与正文。
 
 **TLS：** 在入口终结 HTTPS；Reloop Webhook 须能访问受信任的公网 URL。
+
+## 镜像
+
+| 场景 | 镜像引用 |
+|------|----------|
+| 生产 compose | `${CHATKIT_REGISTRY}/email-connector:${CHATKIT_VERSION}` |
+| 离线包（`load-images.sh` 后） | `local/chatkit/email-connector:${VERSION}`（已列入离线镜像清单） |
+| GHCR（参考） | `ghcr.io/finogeeks/chatkit/email-connector:<version>` |
+
+Compose：**服务名** `email-connector`，**容器名** `chatkit-email-connector`，**profile** `email`，定义于 **`docker-compose.prod.yml`**（无单独 compose 覆盖文件）。
 
 ## 启用 connector
 
 ### Docker Compose
 
-默认 **关闭**。发布包提供 `email` profile 时：
-
-<!-- TODO(packaging): confirm email-connector image repository/tag in CHATKIT_REGISTRY and `load-images.sh` manifest. -->
-
-<!-- TODO(packaging): confirm exact compose invocation from release README, e.g. `docker compose -f docker-compose.prod.yml --profile email up -d email-connector`. -->
-
-<!-- TODO(packaging): insert documented `-f` overlay file name if the release ships one beside docker-compose.prod.yml. -->
+默认 **关闭**。在生产 compose 上启用 `email` profile：
 
 ```bash
-# 示例 — 生产前以发布包 README 为准
-docker compose -f docker-compose.prod.yml \
-  --profile email \
-  up -d email-connector
+export EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+export CONFIG_EMAIL_CONNECTOR_URL=http://chatkit-email-connector:26464
+docker compose -f docker-compose.prod.yml --profile email up -d email-connector
+# then restart identity-service and delivery so they pick up the URL
 ```
 
-<!-- TODO(packaging): confirm compose service name (placeholder above: `email-connector`) and profile name (`email`). -->
-
-配置平台环境变量使核心服务可访问 connector（见下表）。启用外发后重启相关服务。
+将 `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` 写入 `.env`（或发布包文档中的等价机制）后，**重启 identity-service 与 delivery**。
 
 ### Helm
 
-<!-- TODO(packaging): confirm chart value path, e.g. `emailConnector.enabled: true` and secret/env key names in values schema. -->
+```yaml
+emailConnector:
+  enabled: true
+services:
+  email-connector:
+    enabled: true
+servicesEnv:
+  identity-service:
+    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+  delivery:
+    EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+    CONFIG_EMAIL_CONNECTOR_URL: "http://email-connector:26464"
+```
 
 ```bash
 helm upgrade --install <release> <chart-path> \
   -f deploy/helm/values-whitelabel.yaml \
-  --set emailConnector.enabled=true
+  --set emailConnector.enabled=true \
+  --set services.email-connector.enabled=true
 ```
 
-确认 Ingress 将 `/webhooks/reloop` 暴露到 connector Service 端口 **26464**。
+Chart 已含上述邮件路由的网关 Ingress，无需额外片段。
 
 ## 环境与密钥
 
-| 变量 | 密钥？ | 谁配置 | 说明 |
-|------|--------|--------|------|
-| `INTERNAL_SERVICE_TOKEN` | 是 | `gen-secrets.sh` / 运维 | `/internal/*` 必需；按发布包流程轮换 |
-| `EMAIL_CONNECTOR_URL` | 否 | 运维 | 核心 → connector 外发基址（如 `http://email-connector:26464`） |
-| `CONFIG_EMAIL_CONNECTOR_URL` | 否 | 运维 | 发布包文档中的配置服务备用 URL |
-| `DATABASE_URL` / convstore DSN | 是 | 发布包 / 运维 | connector 需要 schema `email`；键名见 `.env.example` |
-| `reloop_api_key` | 是 | **Admin** → 渠道 → 邮件 | GET/PUT 脱敏；前缀 `rl_…` |
-| `webhook_secret` | 是 | **Admin** | `/webhooks/reloop` HMAC；Admin API 脱敏 |
-| `domain_id` | 否 | **Admin** | Reloop 验证后取得 |
-| `agent_mailbox_domain` | 否 | **Admin** | 平台共享已验证域名 |
-| `api_base_url` | 否 | **Admin**（可选） | 自建 Reloop API 根 URL；**留空** → Reloop Cloud（仅演示） |
+### email-connector 容器
+
+| 变量 | 密钥？ | 必填 | 说明 |
+|------|--------|------|------|
+| `DATABASE_URL` | 是 | 是 | Postgres DSN，含 `?schema=email` |
+| `PORT` | 否 | 否（默认 **26464**） | 监听端口 |
+| `ORCHESTRATOR_URL` | 否 | 是 | orchestrator 基址 |
+| `IDENTITY_SERVICE_URL` | 否 | 是 | identity-service 基址 |
+| `INTERNAL_SERVICE_TOKEN` | 是 | 是 | 与其它服务相同；`/internal/*` |
+| `EMAIL_CONNECTOR_TENANT_ID` | 否 | 否 | 可选单租户过滤 |
+
+**仅 dev/实验后备**（生产用 Admin 渠道字段 — 客户 `.env` 勿设）：
+
+`RELOOP_API_KEY`、`RELOOP_WEBHOOK_SECRET`、`RELOOP_DOMAIN_ID`、`RELOOP_API_BASE_URL`、`EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN` 及文档中的 `EMAIL_CONNECTOR_*` 别名。
+
+### 对等服务
+
+| 服务 | 变量 | 密钥？ | 用途 |
+|------|------|--------|------|
+| **identity-service** | `EMAIL_CONNECTOR_URL` | 否 | Admin test-connection / status |
+| **delivery** | `EMAIL_CONNECTOR_URL` | 否 | 外发至 connector |
+| **delivery** | `CONFIG_EMAIL_CONNECTOR_URL` | 否 | 可选；发布包接线时的同类钩子 |
+
+Compose 对端 URL 使用 Docker DNS **`http://chatkit-email-connector:26464`**。Helm 使用 **`http://email-connector:26464`**。**orchestrator 不配置** `EMAIL_CONNECTOR_URL`。
+
+### Admin → 渠道 → 邮件（生产 Reloop）
+
+| 字段 | 密钥？ | 说明 |
+|------|--------|------|
+| `reloop_api_key` | 是 | GET/PUT 脱敏；前缀 `rl_…` |
+| `webhook_secret` | 是 | `/webhooks/reloop` HMAC；Admin API 脱敏 |
+| `domain_id` | 否 | Reloop 验证后取得 |
+| `agent_mailbox_domain` | 否 | 平台共享已验证域名 |
+| `api_base_url` | 否 | 自建 Reloop API 根；**留空** → Reloop Cloud（仅演示） |
 
 租户渠道字段存于 **SiteChannelsConfig**（`channel` id `email`）。Admin 保存会触发 connector 上 `POST /internal/reload`。
 
@@ -163,8 +204,8 @@ helm upgrade --install <release> <chart-path> \
 
 | 步骤 | 操作 |
 |------|------|
-| **A. 启用运行时** | 拉起 `email-connector`（compose profile 或 Helm）；若需外发邮件则设置 `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL`。 |
-| **B. Reloop** | 自建 Reloop；创建 `rl_…` API 密钥；配置 Webhook URL 与签名密钥。 |
+| **A. 启用运行时** | 拉起 `email-connector`（compose profile 或 Helm）；在 `.env` 设置对端 URL 并 **重启 identity-service 与 delivery**。 |
+| **B. Reloop** | 自建 Reloop；创建 `rl_…` API 密钥；在 Reloop 控制台 **手动** 注册 Webhook URL 与签名密钥。 |
 | **C. DNS** | 发布 MX/SPF/DKIM/验证记录；等待 Reloop 域名验证；复制 `domain_id`。 |
 | **D. Admin → 渠道 → 邮件** | 填写 `reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url`（自建 API 根）。保存（触发 reload）。 |
 | **E. 验证** | 执行下文状态与 test-connection；通过 API 完成开通/绑定冒烟。 |
@@ -179,7 +220,7 @@ Admin GET/PUT 中密钥 **脱敏** — 仅在轮换时重新粘贴完整值。
 
 ```bash
 curl -sS -H "Authorization: Bearer <INTERNAL_SERVICE_TOKEN>" \
-  http://email-connector:26464/internal/status
+  http://chatkit-email-connector:26464/internal/status
 ```
 
 常见字段：
@@ -195,7 +236,7 @@ curl -sS -H "Authorization: Bearer <INTERNAL_SERVICE_TOKEN>" \
 
 ```bash
 curl -sS -X POST -H "Authorization: Bearer <INTERNAL_SERVICE_TOKEN>" \
-  http://email-connector:26464/internal/test-connection
+  http://chatkit-email-connector:26464/internal/test-connection
 ```
 
 ### 端到端（仅 API — 无绑定 UI）
@@ -238,7 +279,7 @@ curl -sS -H "Authorization: Bearer <USER_ACCESS_TOKEN>" \
 
 **5. 入站邮件** — 从外部邮箱发到已开通地址；确认 `last_inbound_at` 更新且智能体按产品路由收到会话。
 
-**6. 出站回复** — 在邮件会话上触发智能体回复（因产品而异）；仅在设置 `EMAIL_CONNECTOR_URL` 时确认投递成功。
+**6. 出站回复** — 在邮件会话上触发智能体回复（因产品而异）；确认 **delivery** 在已设置 `EMAIL_CONNECTOR_URL` / `CONFIG_EMAIL_CONNECTOR_URL` 时可到达 connector（identity 用于 Admin 路径）。
 
 ## 监控与日志
 
@@ -267,17 +308,20 @@ curl -sS -H "Authorization: Bearer <USER_ACCESS_TOKEN>" \
 | `domain_verified: false` | DNS 传播；`domain_id` 与 Reloop 一致；`agent_mailbox_domain` 拼写 |
 | Webhook 401/403 | Admin `webhook_secret` 与 Reloop 一致；网关保留 HMAC 所需正文 |
 | 无入站 | MX 指向 Reloop；Webhook URL 为公网 HTTPS；防火墙允许 Reloop → 网关 |
-| 从不外发 | 核心未设 `EMAIL_CONNECTOR_URL`；connector 运行；`transport_ready` 为 true |
+| 网关对 `/webhooks/reloop` 或 `/api/email/*` 返回 502 | connector 未运行或未启用 profile/chart — connector 拉起前属预期 |
+| 从不外发 | **delivery** / **identity-service** 未设 `EMAIL_CONNECTOR_URL`；改 env 后未重启；`transport_ready` 为 true |
 | 绑定失败 | 每租户仅一绑；使用新 `bind_state`；用户令牌有效 |
 | 生产误用 Cloud | Admin 填写自建 `api_base_url`；策略禁止留空 |
 
 ## 已知限制（v1）
 
-- 仅 **绑定模型 A** — 平台共享域名；无每租户自定义域。
+- 仅 **绑定模型 A** — 平台共享域名；**v1 不支持每租户自定义域**。
 - 每租户 **一个** 活跃发件绑定。
-- **无** 终端用户绑定 UI — 仅 API + Admin。
+- **无** 终端用户绑定/开通 UI — **仅 HTTP API**（及 Admin 渠道配置）。
+- **Reloop 入站 Webhook** 须在 **Reloop 控制台手动注册**（FinHub 不会自动注册）。
+- **Reloop Cloud**（`api_base_url` 留空）— **仅演示/实验**；不可用于生产。
 - **无** 自带 Gmail/IMAP 或 agentmail.to。
-- 非邮件功能外发须显式配置 connector URL。
+- 外发邮件经 **delivery**（`EMAIL_CONNECTOR_URL` / 可选 `CONFIG_EMAIL_CONNECTOR_URL`）接线，**非 orchestrator**。
 
 ## 安全说明
 

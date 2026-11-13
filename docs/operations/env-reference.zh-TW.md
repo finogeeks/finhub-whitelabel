@@ -80,16 +80,29 @@
 
 ## 選用郵件渠道（Reloop）
 
-預設關閉（`email` compose profile / `emailConnector.enabled: false`）。完整部署見 [郵件渠道](./email-channel.zh-TW.md)。
+預設關閉（`docker-compose.prod.yml` 的 `email` profile / `emailConnector.enabled: false`）。完整部署見 [郵件渠道](./email-channel.zh-TW.md)。
 
-| 變數 | 密鑰？ | 誰設定 | 說明 |
-|------|--------|--------|------|
-| `EMAIL_CONNECTOR_URL` | 否 | 維運 | 設定後核心服務可向 connector 外寄 |
-| `CONFIG_EMAIL_CONNECTOR_URL` | 否 | 維運 | 發佈包文件中的設定服務 URL |
-| Connector DB DSN | 是 | 發佈包 / 維運 | 鍵名見發佈包 `.env.example`（schema `email`） |
-| `reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url` | 是（密鑰/機密） | **Admin** → 渠道 → 郵件 | 租戶渠道 `email`；GET/PUT 遮罩 |
+**email-connector** 容器：
 
-`INTERNAL_SERVICE_TOKEN`（上文自動產生）保護 connector `/internal/*`。Reloop 租戶機密 **不在** `.env`，僅 Admin。
+| 變數 | 密鑰？ | 必填 |
+|------|--------|------|
+| `DATABASE_URL` | 是 | 是（`?schema=email`） |
+| `PORT` | 否 | 預設 `26464` |
+| `ORCHESTRATOR_URL` | 否 | 是 |
+| `IDENTITY_SERVICE_URL` | 否 | 是 |
+| `INTERNAL_SERVICE_TOKEN` | 是 | 是（上文自動產生） |
+| `EMAIL_CONNECTOR_TENANT_ID` | 否 | 選用 |
+
+connector 上僅 dev：`RELOOP_*`、`EMAIL_CONNECTOR_AGENT_MAILBOX_DOMAIN`、`EMAIL_CONNECTOR_*` 別名（生產用 Admin）。
+
+**對等服務**（**orchestrator 不設定** `EMAIL_CONNECTOR_URL`）：
+
+| 服務 | 變數 | 說明 |
+|------|------|------|
+| identity-service | `EMAIL_CONNECTOR_URL` | Compose：`http://chatkit-email-connector:26464`；Helm：`http://email-connector:26464` |
+| delivery | `EMAIL_CONNECTOR_URL`、選用 `CONFIG_EMAIL_CONNECTOR_URL` | 外寄轉發；變更後須重啟 |
+
+**Admin** → 渠道 → 郵件：`reloop_api_key`、`webhook_secret`、`domain_id`、`agent_mailbox_domain`、`api_base_url`（GET/PUT 遮罩）。
 
 ## finops-staff 文件預設（客戶姿態）
 
